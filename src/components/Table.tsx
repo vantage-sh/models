@@ -154,12 +154,33 @@ async function loadSingleRowData(
     }
 }
 
+function renderColumn(
+    cellVal: any,
+    columnName: string | undefined,
+    query: ColumnQuery,
+) {
+    if (columnName) {
+        const dataType = query.columnExplicitlySetDataTypes[columnName];
+        if (dataType === "boolean") {
+            return cellVal ? "Yes" : "No";
+        }
+        if (dataType === "currency") {
+            // TODO
+            return cellVal;
+        }
+    }
+
+    return String(cellVal);
+}
+
 function RowLoadedValues({
     loadedValues,
     queryColumns,
+    queries,
 }: {
     loadedValues: (any[] | null | { error: string })[];
     queryColumns: (string[] | null)[];
+    queries: ColumnQuery[];
 }) {
     const getColSpan = (index: number) => {
         const cols = queryColumns[index];
@@ -176,7 +197,11 @@ function RowLoadedValues({
         } else if (Array.isArray(val)) {
             let res = val.map((cellVal, j) => (
                 <td key={`${i}-${j}`}>
-                    {String(cellVal)}
+                    {renderColumn(
+                        cellVal,
+                        queryColumns[i]?.[j],
+                        queries[i],
+                    )}
                 </td>
             ));
             const expectedLen = getColSpan(i);
@@ -251,6 +276,7 @@ function TableRow({
                     <RowLoadedValues
                         loadedValues={loadedValues}
                         queryColumns={queryColumns}
+                        queries={queries}
                     />
                 ) : (
                     <td colSpan={queries.length}>
