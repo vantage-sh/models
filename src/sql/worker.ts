@@ -13,15 +13,7 @@ self.onmessage = async (event) => {
             const SQL = await initSqlJs({
                 locateFile: () => sqlWasm,
             });
-            const dataDb = await fetch(
-                "/data.db",
-            ).then((res) => {
-                if (!res.ok) {
-                    throw new Error(`Failed to load data.db: ${res.status} ${res.statusText}`);
-                }
-                return res.arrayBuffer();
-            });
-            sqlite3Db  = new SQL.Database(new Uint8Array(dataDb));
+            sqlite3Db = new SQL.Database(event.data);
         }
         self.postMessage(null);
         return;

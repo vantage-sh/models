@@ -1,6 +1,22 @@
 import type { DataFormat } from "./dataFormat";
 
-let loadedDataPromise: Promise<DataFormat> | null = null;
+let loadedDataPromise: Promise<Uint8Array<ArrayBuffer>> | null = null;
+
+async function loadDataDb(): Promise<Uint8Array<ArrayBuffer>> {
+    if (loadedDataPromise) {
+        return loadedDataPromise;
+    }
+
+    loadedDataPromise = fetch("/data.db").then(async (res) => {
+        if (!res.ok) {
+            throw new Error(`Failed to load data.db: ${res.status} ${res.statusText}`);
+        }
+        const arrayBuffer = await res.arrayBuffer();
+        return new Uint8Array(arrayBuffer);
+    });
+
+    return loadedDataPromise;
+}
 
 /** Gets the name/ID for a model. */
 export function getModelIdsAndNames(data: DataFormat): {id: string; name: string }[] {
@@ -16,6 +32,7 @@ const queryCache = new Map<string, Map<string, {
 const workersPool: Worker[] = [];
 
 async function loadWorker(): Promise<Worker> {
+    const dataDb = await loadDataDb();
     const worker = new Worker(new URL("./sql/worker.ts", import.meta.url), { type: "module" });
     return new Promise((resolve, reject) => {
         worker.onmessage = () => {
@@ -30,7 +47,7 @@ async function loadWorker(): Promise<Worker> {
             reject(error);
         };
 
-        worker.postMessage(null);
+        worker.postMessage(dataDb);
     });
 }
 
