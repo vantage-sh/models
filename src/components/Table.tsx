@@ -174,11 +174,20 @@ function RowLoadedValues({
                 </td>
             );
         } else if (Array.isArray(val)) {
-            return val.map((cellVal, j) => (
+            const res = val.map((cellVal, j) => (
                 <td key={`${i}-${j}`}>
                     {String(cellVal)}
                 </td>
             ));
+            const emptyCells = getColSpan(i) - val.length;
+            for (let k = 0; k < emptyCells; k++) {
+                res.push(
+                    <td key={`${i}-empty-${k}`}>
+                        {/* Empty */}
+                    </td>
+                );
+            }
+            return res;
         } else {
             return (
                 <td key={i} colSpan={getColSpan(i)}>

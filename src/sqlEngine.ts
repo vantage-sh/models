@@ -50,7 +50,9 @@ async function initPool() {
     }
 }
 
-initPool();
+if (typeof window !== "undefined") {
+    initPool();
+}
 
 const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
 
