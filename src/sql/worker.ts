@@ -2,19 +2,15 @@ import sqlWasm from "sql.js/dist/sql-wasm.wasm?url";
 import initSqlJs, { type Database, type Statement } from "sql.js";
 
 let sqlite3Db: Database | null = null;
-let loaded = false;
 
 const compilationCache = new Map<string, Statement>();
 
 self.onmessage = async (event) => {
-    if (!loaded) {
-        loaded = true;
-        if (!sqlite3Db) {
-            const SQL = await initSqlJs({
-                locateFile: () => sqlWasm,
-            });
-            sqlite3Db = new SQL.Database(event.data);
-        }
+    if (!sqlite3Db) {
+        const SQL = await initSqlJs({
+            locateFile: () => sqlWasm,
+        });
+        sqlite3Db = new SQL.Database(event.data);
         self.postMessage(null);
         return;
     }
@@ -23,7 +19,7 @@ self.onmessage = async (event) => {
     if (id === 0) {
         let prep = compilationCache.get(query);
         if (!prep) {
-            prep = sqlite3Db!.prepare(query);
+            prep = sqlite3Db.prepare(query);
             compilationCache.set(query, prep);
         }
         prep.bind([param]);
@@ -40,7 +36,7 @@ self.onmessage = async (event) => {
 
     let prep = compilationCache.get(query);
     if (!prep) {
-        prep = sqlite3Db!.prepare(query);
+        prep = sqlite3Db.prepare(query);
         compilationCache.set(query, prep);
     }
     prep.bind(param);
