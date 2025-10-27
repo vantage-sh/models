@@ -6,10 +6,11 @@ import StringFilter from "./filters/StringFilter";
 import { NumberFilter } from "./filters/NumberFilter";
 import useLocalStorage from "./hooks/useLocalStorage";
 import LoadingEffect from "./LoadingEffect";
-import RowLoadedValues from "./RowLoadedValues";
+import RowLoadedValues, { DEFAULT_COLUMN_WIDTH } from "./RowLoadedValues";
 import sortValue from "./utils/sortValue";
 import SortingButtons from "./SortingButtons";
 import checkFilters from "./filters/checkFilters";
+import Column from "./Column";
 
 export type ColumnDataType =
     "boolean" |
@@ -20,6 +21,7 @@ export type ColumnQuery = {
     columnExplicitlySetDataTypes: Record<string, ColumnDataType>;
     columnOrdering: Record<string, boolean>;
     columnFilters: Record<string, any>;
+    widths?: Record<string, number>;
 };
 
 const defaults = defaultQueries.map(({ name, ...dq }) => ({
@@ -109,7 +111,7 @@ function TableHeader({
 }) {
     if (queryColumns === null) {
         return (
-            <th>
+            <th className="pb-1">
                 <LoadingEffect />
             </th>
         );
@@ -126,9 +128,22 @@ function TableHeader({
 
     // TODO: in the future add deletion/etc
     return queryColumns.map((col, idx) => (
-        <th key={col}>
+        <Column
+            columnType="th" initialWidth={query.widths?.[col] || DEFAULT_COLUMN_WIDTH}
+            key={col} className="pb-1" updateWidth={(width) => {
+                if (!query.widths) {
+                    query.widths = {
+                        [col]: width,
+                    };
+                    updateQuery();
+                    return;
+                }
+                query.widths[col] = width;
+                updateQuery();
+            }}
+        >
             <div className="flex">
-                <div className="block">
+                <div className="block grow">
                     {col}
                     <div className="w-full">
                         <QueryFilter
@@ -154,7 +169,7 @@ function TableHeader({
                     updateQuery={updateQuery}
                 />
             </div>
-        </th>
+        </Column>
     ));
 }
 
@@ -244,6 +259,7 @@ function TableRow({
     id,
     name,
     queries,
+    setQueries,
     queryColumns,
     setQueryColumns,
     loadedValues,
@@ -252,6 +268,7 @@ function TableRow({
     id: string;
     name: string;
     queries: ColumnQuery[];
+    setQueries: (cb: (prev: ColumnQuery[]) => ColumnQuery[]) => void;
     queryColumns: (string[] | null)[];
     setQueryColumns: (cols: (string[] | null)[]) => void;
     loadedValues: LoadedValues;
@@ -280,19 +297,31 @@ function TableRow({
         };
     }, [id, queriesKey]);
 
+    const updateQueries = React.useCallback(() => {
+        setQueries((prev) => [...prev]);
+    }, [setQueries]);
+
     if (!rowVisible) {
         return null;
     }
 
     return (
-        <tr>
-            <td>{name}</td>
+        <tr className="border-t border-gray-300">
+            <td className="relative">
+                <div className="px-2">
+                    {name}
+                </div>
+                <div 
+                    className="absolute top-0 right-0 w-1 h-full bg-gray-200 hover:opacity-50 transition-all duration-150" 
+                />
+            </td>
             {
                 loadedValues ? (
                     <RowLoadedValues
                         loadedValues={loadedValues}
                         queryColumns={queryColumns}
                         queries={queries}
+                        updateQueries={updateQueries}
                     />
                 ) : (
                     <td colSpan={queries.length}>
@@ -378,7 +407,14 @@ export default function Table({
         <table>
             <thead>
                 <tr>
-                    <th>Name</th>
+                    <th className="pb-1 relative">
+                        <div className="px-2">
+                            Name
+                        </div>
+                        <div 
+                            className="absolute top-0 right-0 w-1 h-full bg-gray-200 hover:opacity-50 transition-all duration-150" 
+                        />
+                    </th>
                     {
                         queries.map((q, i) => (
                             <TableHeader
@@ -409,6 +445,7 @@ export default function Table({
                             key={id}
                             name={name}
                             queries={queries}
+                            setQueries={setQueries}
                             queryColumns={queryColumns}
                             setQueryColumns={setQueryColumns}
                             loadedValues={loadedValuesRows[0].get(id)!}

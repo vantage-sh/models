@@ -1,5 +1,8 @@
 import type { ColumnQuery } from "./Table";
 import LoadingEffect from "./LoadingEffect";
+import Column from "./Column";
+
+export const DEFAULT_COLUMN_WIDTH = 150;
 
 function renderColumn(
     cellVal: any,
@@ -24,10 +27,12 @@ export default function RowLoadedValues({
     loadedValues,
     queryColumns,
     queries,
+    updateQueries,
 }: {
     loadedValues: (any[] | null | { error: string })[];
     queryColumns: (string[] | null)[];
     queries: ColumnQuery[];
+    updateQueries: () => void;
 }) {
     const getColSpan = (index: number) => {
         const cols = queryColumns[index];
@@ -43,13 +48,27 @@ export default function RowLoadedValues({
             );
         } else if (Array.isArray(val)) {
             let res = val.map((cellVal, j) => (
-                <td key={`${i}-${j}`}>
+                <Column
+                    columnType="td" initialWidth={queries[i].widths?.[queryColumns[i]?.[j] || ""] || DEFAULT_COLUMN_WIDTH}
+                    updateWidth={(newWidth: number) => {
+                        const colName = queryColumns[i]?.[j];
+                        if (colName) {
+                            const query = queries[i];
+                            if (!query.widths) {
+                                query.widths = {};
+                            }
+                            query.widths[colName] = newWidth;
+                        }
+                        updateQueries();
+                    }}
+                    key={`${i}-${j}`}
+                >
                     {renderColumn(
                         cellVal,
                         queryColumns[i]?.[j],
                         queries[i],
                     )}
-                </td>
+                </Column>
             ));
             const expectedLen = getColSpan(i);
             if (res.length > expectedLen) {
@@ -66,7 +85,7 @@ export default function RowLoadedValues({
             return res;
         } else {
             return (
-                <td key={i} colSpan={getColSpan(i)}>
+                <td key={i} style={{ width: DEFAULT_COLUMN_WIDTH * getColSpan(i) }} colSpan={getColSpan(i)}>
                     Error: {val.error}
                 </td>
             );
