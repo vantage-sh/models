@@ -69,17 +69,17 @@ function SortingButtons({
     };
 
     return (
-        <div style={{ display: "flex", flexDirection: "column", marginLeft: "4px" }}>
+        <div className="flex flex-col ml-1">
             <button
                 onClick={() => setSorting(ascending === true ? undefined : true)}
-                style={{ fontSize: "8px", lineHeight: "8px", padding: "0", border: "none", background: "none", cursor: "pointer", fontWeight: ascending === true ? "bold" : "normal" }}
+                className={`text-[8px] leading-2 p-0 border-none bg-none cursor-pointer ${ascending === true ? "font-bold" : "font-normal"}`}
                 aria-label="Sort ascending"
             >
                 ▲
             </button>
             <button
                 onClick={() => setSorting(ascending === false ? undefined : false)}
-                style={{ fontSize: "8px", lineHeight: "8px", padding: "0", border: "none", background: "none", cursor: "pointer", fontWeight: ascending === false ? "bold" : "normal" }}
+                className={`text-[8px] leading-2 p-0 border-none bg-none cursor-pointer ${ascending === false ? "font-bold" : "font-normal"}`}
                 aria-label="Sort descending"
             >
                 ▼
@@ -121,7 +121,7 @@ function BooleanFilter({
                     setFilter(false);
                 }
             }}
-            style={{ width: "100%" }}
+            className="w-full border text-sm border-gray-300 rounded-md p-1"
         >
             <option value="any">Any</option>
             <option value="true">Yes</option>
@@ -198,10 +198,10 @@ function TableHeader({
     // TODO: in the future add deletion/etc
     return queryColumns.map((col) => (
         <th key={col}>
-            <div style={{ display: "flex" }}>
-                <div style={{ display: "block" }}>
+            <div className="flex">
+                <div className="block">
                     {col}
-                    <div style={{ width: "100%" }}>
+                    <div className="w-full">
                         <QueryFilter
                             columnName={col}
                             query={query}
