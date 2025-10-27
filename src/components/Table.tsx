@@ -1,221 +1,32 @@
 import React from "react";
 import { defaultQueries } from "../constants";
 import { loadSingleRow } from "../sqlEngine";
-import { ArrowDown, ArrowUp } from "lucide-react";
+import BooleanFilter from "./filters/BooleanFilter";
+import StringFilter from "./filters/StringFilter";
+import { NumberFilter } from "./filters/NumberFilter";
+import useLocalStorage from "./hooks/useLocalStorage";
+import LoadingEffect from "./LoadingEffect";
+import RowLoadedValues from "./RowLoadedValues";
+import sortValue from "./utils/sortValue";
+import SortingButtons from "./SortingButtons";
+import checkFilters from "./filters/checkFilters";
 
-type ColumnDataType =
+export type ColumnDataType =
     "boolean" |
     "currency";
 
-type ColumnQuery = {
+export type ColumnQuery = {
     query: string;
     columnExplicitlySetDataTypes: Record<string, ColumnDataType>;
     columnOrdering: Record<string, boolean>;
     columnFilters: Record<string, any>;
 };
 
-function useLocalStorage<T>(key: string, initialValue: T): [T, (value: T) => void] {
-    const [storedValue, setStoredValue] = React.useState<T>(initialValue);
-
-    React.useEffect(() => {
-        const item = window.localStorage.getItem(key);
-        if (item) {
-            setStoredValue(JSON.parse(item));
-        } else {
-            window.localStorage.setItem(key, JSON.stringify(initialValue));
-        }
-    }, [key, initialValue]);
-
-    const setValue = React.useCallback((value: T) => {
-        setStoredValue(value);
-        window.localStorage.setItem(key, JSON.stringify(value));
-    }, [key]);
-
-    return [storedValue, setValue];
-}
-
-function getDefaults(): ColumnQuery[] {
-    return defaultQueries.map(({ name, ...dq }) => ({
-        ...dq,
-        columnOrdering: {},
-        columnFilters: {},
-    }));
-}
-
-function LoadingEffect() {
-    return (
-        <div className="animate-pulse h-4 w-full bg-gray-200 rounded">
-            <div className="h-4 w-1/2 bg-gray-300 rounded"></div>
-        </div>
-    );
-}
-
-function SortingButtons({
-    columnName,
-    query,
-    updateQuery,
-}: {
-    columnName: string;
-    query: ColumnQuery;
-    updateQuery: () => void;
-}) {
-    const ascending = query.columnOrdering[columnName];
-
-    const setSorting = (asc: boolean | undefined) => {
-        if (asc === undefined) {
-            delete query.columnOrdering[columnName];
-        } else {
-            query.columnOrdering[columnName] = asc;
-        }
-        updateQuery();
-    };
-
-    return (
-        <div className="flex flex-col ml-1">
-            <button
-                onClick={() => setSorting(ascending === true ? undefined : true)}
-                className="leading-2 p-0 border-none bg-none cursor-pointer"
-                aria-label="Sort ascending"
-            >
-                <ArrowUp size={16} color={ascending === true ? "black" : "gray"} />
-            </button>
-            <button
-                onClick={() => setSorting(ascending === false ? undefined : false)}
-                className="leading-2 p-0 border-none bg-none cursor-pointer"
-                aria-label="Sort descending"
-            >
-                <ArrowDown size={16} color={ascending === false ? "black" : "gray"} />
-            </button>
-        </div>
-    );
-}
-
-function BooleanFilter({
-    columnName,
-    query,
-    updateQuery,
-}: {
-    columnName: string;
-    query: ColumnQuery;
-    updateQuery: () => void;
-}) {
-    const currentFilter = query.columnFilters[columnName];
-
-    const setFilter = (value: boolean | undefined) => {
-        if (value === undefined) {
-            delete query.columnFilters[columnName];
-        } else {
-            query.columnFilters[columnName] = value;
-        }
-        updateQuery();
-    };
-
-    return (
-        <select
-            value={currentFilter === undefined ? "any" : currentFilter ? "true" : "false"}
-            onChange={(e) => {
-                const val = e.target.value;
-                if (val === "any") {
-                    setFilter(undefined);
-                } else if (val === "true") {
-                    setFilter(true);
-                } else {
-                    setFilter(false);
-                }
-            }}
-            className="w-full border text-sm border-gray-300 rounded-md p-1"
-        >
-            <option value="any">Any</option>
-            <option value="true">Yes</option>
-            <option value="false">No</option>
-        </select>
-    );
-}
-
-function StringFilter({
-    columnName,
-    query,
-    updateQuery,
-}: {
-    columnName: string;
-    query: ColumnQuery;
-    updateQuery: () => void;
-}) {
-    const [filterValue, setFilterValue] = React.useState<string>(
-        query.columnFilters[columnName] || ""
-    );
-
-    return (
-        <input
-            type="text"
-            value={filterValue}
-            onChange={(e) => {
-                const val = e.target.value;
-                if (val === "") {
-                    delete query.columnFilters[columnName];
-                } else {
-                    query.columnFilters[columnName] = val;
-                }
-                setFilterValue(val);
-                updateQuery();
-            }}
-            className="w-full border text-sm border-gray-300 rounded-md p-1"
-            aria-label={`Filter ${columnName}`}
-        />
-    );
-}
-
-type OperatorTypes = ">=" | "<=" | "=" | ">" | "<";
-
-function NumberFilter({
-    columnName,
-    query,
-    updateQuery,
-}: {
-    columnName: string;
-    query: ColumnQuery;
-    updateQuery: () => void;
-}) {
-    const [filterValue, setFilterValue] = React.useState<[OperatorTypes, number]>(
-        query.columnFilters[columnName] || [">=", 0]
-    );
-
-    return (
-        <div className="flex">
-            <select
-                value={filterValue[0]}
-                onChange={(e) => {
-                    const newOp = e.target.value as OperatorTypes;
-                    const newFilter: [OperatorTypes, number] = [newOp, filterValue[1]];
-                    query.columnFilters[columnName] = newFilter;
-                    setFilterValue(newFilter);
-                    updateQuery();
-                }}
-                className="border text-sm border-gray-300 rounded-md p-1 mr-1"
-                aria-label={`Operator for filtering ${columnName}`}
-            >
-                <option value=">=">&gt;=</option>
-                <option value="<=">&lt;=</option>
-                <option value="=">=</option>
-                <option value=">">&gt;</option>
-                <option value="<">&lt;</option>
-            </select>
-            <input
-                type="number"
-                value={filterValue[1]}
-                onChange={(e) => {
-                    const newNum = Number(e.target.value);
-                    const newFilter: [OperatorTypes, number] = [filterValue[0], newNum];
-                    query.columnFilters[columnName] = newFilter;
-                    setFilterValue(newFilter);
-                    updateQuery();
-                }}
-                className="border text-sm border-gray-300 rounded-md p-1"
-                aria-label={`Value for filtering ${columnName}`}
-            />
-        </div>
-    );
-}
+const defaults = defaultQueries.map(({ name, ...dq }) => ({
+    ...dq,
+    columnOrdering: {},
+    columnFilters: {},
+}));
 
 function QueryFilter({
     columnName,
@@ -277,63 +88,6 @@ function QueryFilter({
     }
 
     return null;
-}
-
-function checkFilters(
-    row: { [column: string]: any },
-    filters: Record<string, any>,
-    explicitlySetDataTypes: Record<string, ColumnDataType>,
-): boolean {
-    for (const [col, val] of Object.entries(filters)) {
-        const dataType = explicitlySetDataTypes[col];
-
-        if (dataType === "boolean") {
-            const rowVal = Boolean(row[col]);
-            if (rowVal !== Boolean(val)) {
-                return false;
-            }
-            break;
-        }
-
-        const rowVal = row[col];
-        if (rowVal === null || rowVal === undefined) {
-            return false;
-        }
-        switch (typeof rowVal) {
-            case "string": {
-                if (!String(rowVal).toLowerCase().includes(String(val).toLowerCase())) {
-                    return false;
-                }
-                break;
-            }
-            case "number": {
-                if (!Array.isArray(val) || val.length !== 2) {
-                    break;
-                }
-                const [op, num] = val as [OperatorTypes, number];
-                switch (op) {
-                    case ">=":
-                        if (!(rowVal >= num)) return false;
-                        break;
-                    case "<=":
-                        if (!(rowVal <= num)) return false;
-                        break;
-                    case "=":
-                        if (!(rowVal === num)) return false;
-                        break;
-                    case ">":
-                        if (!(rowVal > num)) return false;
-                        break;
-                    case "<":
-                        if (!(rowVal < num)) return false;
-                        break;
-                }
-                break;
-            }
-        }
-    }
-
-    return true;
 }
 
 type LoadedValues = (any[] | null | { error: string })[] | null;
@@ -475,79 +229,6 @@ async function loadSingleRowData(
     }
 }
 
-function renderColumn(
-    cellVal: any,
-    columnName: string | undefined,
-    query: ColumnQuery,
-) {
-    if (columnName) {
-        const dataType = query.columnExplicitlySetDataTypes[columnName];
-        if (dataType === "boolean") {
-            return cellVal ? "Yes" : "No";
-        }
-        if (dataType === "currency") {
-            // TODO
-            return cellVal;
-        }
-    }
-
-    return String(cellVal);
-}
-
-function RowLoadedValues({
-    loadedValues,
-    queryColumns,
-    queries,
-}: {
-    loadedValues: (any[] | null | { error: string })[];
-    queryColumns: (string[] | null)[];
-    queries: ColumnQuery[];
-}) {
-    const getColSpan = (index: number) => {
-        const cols = queryColumns[index];
-        return cols ? cols.length : 1;
-    };
-
-    return loadedValues.map((val, i) => {
-        if (val === null) {
-            return (
-                <td key={i} colSpan={getColSpan(i)}>
-                    <LoadingEffect />
-                </td>
-            );
-        } else if (Array.isArray(val)) {
-            let res = val.map((cellVal, j) => (
-                <td key={`${i}-${j}`}>
-                    {renderColumn(
-                        cellVal,
-                        queryColumns[i]?.[j],
-                        queries[i],
-                    )}
-                </td>
-            ));
-            const expectedLen = getColSpan(i);
-            if (res.length > expectedLen) {
-                res = res.slice(0, expectedLen);
-            }
-            const emptyCells = expectedLen - val.length;
-            for (let k = 0; k < emptyCells; k++) {
-                res.push(
-                    <td key={`${i}-empty-${k}`}>
-                        {/* Empty */}
-                    </td>
-                );
-            }
-            return res;
-        } else {
-            return (
-                <td key={i} colSpan={getColSpan(i)}>
-                    Error: {val.error}
-                </td>
-            );
-        }
-    });
-}
-
 const cachedQueriesKey = new WeakMap<ColumnQuery[], string>();
 
 function getQueriesKey(queries: ColumnQuery[]): string {
@@ -623,29 +304,6 @@ function TableRow({
     );
 }
 
-function sortValue(
-    aVal: any,
-    bVal: any,
-    ascending: boolean,
-    dataType: ColumnDataType | undefined,
-): number {
-    let comparison = 0;
-
-    if (dataType === "boolean") {
-        const aBool = Boolean(aVal);
-        const bBool = Boolean(bVal);
-        comparison = (aBool === bBool) ? 0 : (aBool ? 1 : -1);
-    } else if (typeof aVal === "number" && typeof bVal === "number") {
-        comparison = aVal - bVal;
-    } else {
-        const aStr = String(aVal);
-        const bStr = String(bVal);
-        comparison = aStr.localeCompare(bStr);
-    }
-
-    return ascending ? comparison : -comparison;
-}
-
 function sortIdsAndNames(
     idsAndNames: { id: string; name: string }[],
     queries: ColumnQuery[],
@@ -699,7 +357,6 @@ export default function Table({
 }: {
     idsAndNames: { id: string; name: string }[];
 }) {
-    const defaults = React.useMemo(() => getDefaults(), []);
     const [queries, setQueries] = useLocalStorage<ColumnQuery[]>("table-queries", defaults);
     const [queryColumns, setQueryColumns] = React.useState<(string[] | null)[]>(
         () => Array(queries.length).fill(null)
