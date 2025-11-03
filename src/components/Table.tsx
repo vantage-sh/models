@@ -12,6 +12,7 @@ import SortingButtons from "./SortingButtons";
 import checkFilters from "./filters/checkFilters";
 import Column from "./Column";
 import AddButton from "./AddButton";
+import SQLEditorButton from "./SQLEditorButton";
 import type { VendorInfo } from "../dataFormat";
 
 export type ColumnDataType =
@@ -103,6 +104,7 @@ function TableHeader({
     deleteQuery,
     queryColumns,
     loadedValuesPtr,
+    firstId,
 }: {
     query: ColumnQuery;
     queryIdx: number;
@@ -110,6 +112,7 @@ function TableHeader({
     deleteQuery: () => void;
     queryColumns: string[] | null;
     loadedValuesPtr: [Map<string, LoadedValues>];
+    firstId: string;
 }) {
     if (queryColumns === null) {
         return (
@@ -170,13 +173,24 @@ function TableHeader({
                     query={query}
                     updateQuery={updateQuery}
                 />
-                <button
-                    className="ml-2 px-2 py-1 text-xs text-red-600 hover:text-white hover:bg-red-600 rounded transition"
-                    title="Delete column"
-                    onClick={deleteQuery}
-                >
-                    &#x2715;
-                </button>
+                {
+                    idx === queryColumns.length - 1 && (
+                        <>
+                            <button
+                                className="ml-2 px-2 py-1 text-xs text-red-600 hover:text-white hover:bg-red-600 rounded transition block"
+                                title="Delete column"
+                                onClick={deleteQuery}
+                            >
+                                &#x2715;
+                            </button>
+                            <SQLEditorButton
+                                query={query}
+                                updateQuery={updateQuery}
+                                firstId={firstId}
+                            />
+                        </>
+                    )
+                }
             </div>
         </Column>
     ));
@@ -472,6 +486,7 @@ export default function Table({
                                     }}
                                     queryColumns={queryColumns[i] || []}
                                     loadedValuesPtr={loadedValuesRows}
+                                    firstId={idsAndNames[0]?.id || ""}
                                 />
                             ))
                         }

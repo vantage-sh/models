@@ -11,9 +11,9 @@ export type SQLModalProps = {
     firstId: string;
 };
 
-const CodeMirror = React.lazy(() => import("./CodeMirror"));
+export const CodeMirror = React.lazy(() => import("./CodeMirror"));
 
-async function testQuery(query: string, firstId: string): Promise<{ ok: boolean; error?: string }> {
+export async function testQuery(query: string, firstId: string): Promise<{ ok: boolean; error?: string }> {
     try {
         const rows = await loadMultipleRows(query, [firstId]);
         if (!rows) {
@@ -29,6 +29,7 @@ async function testQuery(query: string, firstId: string): Promise<{ ok: boolean;
             };
         }
     } catch (e) {
+        console.log("Error testing query:", e);
         return {
             ok: false,
             error: `Query failed to execute: ${(e as any).message}`,
