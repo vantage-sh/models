@@ -36,7 +36,11 @@ export default function Column({
 
     const Tag = columnType;
     return (
-        <Tag className={`${className} relative`} colSpan={colSpan} style={{ width: initialWidth }}>
+        <Tag
+            className={`${className} relative`}
+            colSpan={colSpan}
+            style={{ width: initialWidth, minWidth: initialWidth }}
+        >
             <div className="px-2">
                 {children}
             </div>
