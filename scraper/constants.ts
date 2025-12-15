@@ -2,22 +2,63 @@ import type { Tokenisers } from "@/src/dataFormat";
 import { nullable, array, number, object, parse, string, type BaseSchema, type InferOutput } from "valibot";
 
 const MODEL_REASONING_PREFIXES = {
+    // OpenAI
     "gpt-oss": true,
+    "gpt-5": true,
+    "gpt-4-1": true,  // GPT-4.1
+    "gpt-4o": true,
+    "gpt-4-turbo": true,
+    "gpt-4": true,
+    "gpt-3": true,
+    "o3": true,
+    "o1": true,
+    // Anthropic
+    "claude-opus-4": true,
+    "claude-sonnet-4": true,
+    "claude-haiku-4": true,
+    "claude-3-opus": true,
+    "claude-3-sonnet": true,
+    "claude-3-haiku": true,
+    "claude-haiku-3": true,
+    "claude-instant": false,
+    "claude-2": true,
+    "claude-3": true,
+    // Meta
+    "llama-4": false,
+    "llama-3-3": true,
+    "llama-3": true,
+    // Mistral
+    "magistral": true,
+    "mistral-large": true,
+    "mistral-medium": true,
+    "mistral-small": true,
+    "mistral-7b": true,
+    "ministral": true,
+    "codestral": true,
+    "mixtral": true,
+    "pixtral": true,
+    // DeepSeek
+    "deepseek-r1": true,
+    "deepseek-reasoner": true,
+    "deepseek-chat": true,
     "deepseek-v3": true,
+    // Qwen
+    "qwen3-max": true,
+    "qwen-max": true,
+    "qwen-plus": true,
+    "qwen-turbo": true,
     "qwen3-235b-a22b": true,
     "qwen3-coder": true,
     "qwen3-32": false,
-    "llama-3": true,
-    "mistral-7b": true,
-    "llama-4": false,
-    "claude-instant": false,
-    "mistral-small": true,
-    "mistral-large": true,
-    "mixtral": true,
-    "pixtral": true,
-    "deepseek-r1": true,
-    "claude-2": true,
-    "claude-3": true,
+    "qwen-coder": true,
+    // Google
+    "gemini-3": true,
+    "gemini-2-5": true,
+    "gemini-2-0": true,
+    "gemini-1-5": true,
+    // IBM
+    "granite-3": true,
+    "granite": true,
 } as const;
 
 export function isReasoningModel(modelId: string): boolean {
@@ -68,6 +109,19 @@ export function isSelfHostableModel(modelId: string, provider: string): boolean 
         return true;
     }
 
+    if (provider === "Google") {
+        // No Google models are self-hostable
+        return false;
+    }
+
+    if (provider === "IBM") {
+        // IBM Granite models are self-hostable
+        if (modelId.startsWith("granite")) {
+            return true;
+        }
+        return false;
+    }
+
     throw new Error(`Unknown self-hostable status for model ID: ${modelId} with provider: ${provider}. Please update isSelfHostableModel in scraper/constants.ts.`);
 }
 
@@ -84,26 +138,48 @@ const TRANSFORMERS_TOKENISER_PATHS: Record<string, string> = {
     "llama-3-1": "meta-llama/Llama-3.1-8B-Instruct",
     "llama-3": "meta-llama/Llama-3.1-8B-Instruct",
     // Mistral
+    "magistral": "mistralai/Mistral-Large-Instruct-2411",
     "mistral-large": "mistralai/Mistral-Large-Instruct-2411",
+    "mistral-medium": "mistralai/Mistral-Large-Instruct-2411",
     "mistral-small": "mistralai/Mistral-Small-24B-Instruct-2501",
+    "ministral": "mistralai/Mistral-Small-24B-Instruct-2501",
+    "codestral": "mistralai/Codestral-22B-v0.1",
     "pixtral": "mistralai/Pixtral-Large-Instruct-2411",
     "mixtral": "mistralai/Mixtral-8x22B-Instruct-v0.1",
     "mistral-7b": "mistralai/Mistral-7B-Instruct-v0.3",
     // DeepSeek
+    "deepseek-reasoner": "deepseek-ai/DeepSeek-R1",
+    "deepseek-chat": "deepseek-ai/DeepSeek-V3",
     "deepseek-r1": "deepseek-ai/DeepSeek-R1",
     "deepseek-v3": "deepseek-ai/DeepSeek-V3",
     // Qwen
+    "qwen3-max": "Qwen/Qwen3-235B-A22B",
+    "qwen-max": "Qwen/Qwen2.5-72B-Instruct",
+    "qwen-plus": "Qwen/Qwen2.5-32B-Instruct",
+    "qwen-turbo": "Qwen/Qwen2.5-14B-Instruct",
     "qwen3-235b": "Qwen/Qwen3-235B-A22B",
     "qwen3-coder": "Qwen/Qwen3-Coder-480B-A35B-Instruct",
     "qwen3-32": "Qwen/Qwen3-32B",
     "qwen3": "Qwen/Qwen3-32B",
+    "qwen-coder": "Qwen/Qwen2.5-Coder-32B-Instruct",
+    // Google Gemini (uses SentencePiece, available via transformers)
+    "gemini": "google/gemma-2-9b-it",
+    // IBM Granite
+    "granite": "ibm-granite/granite-3.0-8b-instruct",
 };
 
 export function getTokeniserForModel(modelId: string, provider: string): Tokenisers | undefined {
     // OpenAI models use tiktoken
     if (provider === "OpenAI") {
-        // GPT-4o and newer use o200k_base
-        if (modelId.startsWith("gpt-4o") || modelId.startsWith("gpt-oss")) {
+        // GPT-5, GPT-4.1, GPT-4o, o-series and newer use o200k_base
+        if (
+            modelId.startsWith("gpt-5") ||
+            modelId.startsWith("gpt-4-1") ||
+            modelId.startsWith("gpt-4o") ||
+            modelId.startsWith("gpt-oss") ||
+            modelId.startsWith("o3") ||
+            modelId.startsWith("o1")
+        ) {
             return { type: "tiktoken", bpePath: TIKTOKEN_O200K };
         }
         // Older GPT-4, GPT-3.5 use cl100k_base
@@ -115,6 +191,11 @@ export function getTokeniserForModel(modelId: string, provider: string): Tokenis
 
     // Anthropic Claude - no public tokenizer available
     if (provider === "Anthropic") {
+        return undefined;
+    }
+
+    // Google Gemini - no public tokenizer available (proprietary)
+    if (provider === "Google") {
         return undefined;
     }
 
