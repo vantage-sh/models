@@ -285,7 +285,7 @@ function TableRow({
     setLoadedValues: (vals: LoadedValues | null) => void;
 }) {
     const [rowVisible, setRowVisible] = React.useState(true);
-    const [queries, setQueries] = useStateItem("queries");
+    const [queries] = useStateItem("queries");
 
     const queriesKey = getQueriesKey(queries);
     React.useEffect(() => {
