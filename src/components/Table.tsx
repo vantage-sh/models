@@ -384,6 +384,24 @@ function sortIdsAndNames(
     });
 }
 
+function NameFilter({
+    nameFilter,
+    setNameFilter,
+}: {
+    nameFilter: string;
+    setNameFilter: (nameFilter: string) => void;
+}) {
+    return <div className="px-2">
+        Name
+        <input
+            type="text"
+            value={nameFilter}
+            onChange={(e) => setNameFilter(e.target.value)}
+            className="w-full border text-sm border-gray-300 rounded-md p-1"
+        />
+    </div>;
+}
+
 export default function Table({
     idsAndNames,
     vendors,
@@ -392,6 +410,7 @@ export default function Table({
     vendors: Record<string, VendorInfo>;
 }) {
     const [queries, setQueries] = useStateItem("queries");
+    const [nameFilter, setNameFilter] = useStateItem("nameFilter");
     const [queryColumns, setQueryColumns] = useState<(string[] | null)[]>(
         Array(queries.length).fill(null),
     );
@@ -399,8 +418,12 @@ export default function Table({
         () => [new Map(idsAndNames.map(({ id }) => [id, null]))]
     );
     const sortedIdsAndNames = React.useMemo(() => {
-        return sortIdsAndNames(idsAndNames, queries, queryColumns, loadedValuesRows[0]);
-    }, [idsAndNames, queries, queryColumns, loadedValuesRows]);
+        const v = sortIdsAndNames(idsAndNames, queries, queryColumns, loadedValuesRows[0]);
+        if (nameFilter === "") {
+            return v;
+        }
+        return v.filter(({ name }) => name.toLowerCase().includes(nameFilter.toLowerCase()));
+    }, [idsAndNames, nameFilter, queries, queryColumns, loadedValuesRows]);
 
     return (
         <div className="flex-1 overflow-x-auto h-full">
@@ -409,9 +432,10 @@ export default function Table({
                     <thead>
                         <tr>
                         <th className="pb-1 relative">
-                            <div className="px-2">
-                                Name
-                            </div>
+                            <NameFilter
+                                nameFilter={nameFilter}
+                                setNameFilter={setNameFilter}
+                            />
                             <div 
                                 className="absolute top-0 right-0 w-1 h-full bg-gray-200 hover:opacity-50 transition-all duration-150" 
                             />

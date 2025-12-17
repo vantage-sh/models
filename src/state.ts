@@ -4,11 +4,13 @@ import { defaultQueries } from "./constants";
 
 type State = {
     currency: string;
+    nameFilter: string;
     queries: ColumnQuery[];
 };
 
 const initialState: State = {
     currency: "USD",
+    nameFilter: "",
     queries:  defaultQueries.map(({ name, ...dq }) => ({
         ...dq,
         columnOrdering: {},
@@ -66,6 +68,7 @@ readFromRemoteStorage().then((remoteState) => {
     if (remoteState) {
         currentState.currency = remoteState.currency;
         currentState.queries = remoteState.queries;
+        currentState.nameFilter = remoteState.nameFilter;
     }
 });
 
