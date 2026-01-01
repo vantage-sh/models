@@ -22,6 +22,9 @@ function slugify(name: string, provider: string): string {
     if (provider === "DeepSeek" && !n.startsWith("deepseek-")) {
         return `deepseek-${n}`;
     }
+    if (provider === "Nvidia" && !n.startsWith("nvidia-")) {
+        return `nvidia-${n}`;
+    }
     return n;
 }
 
@@ -32,6 +35,10 @@ const PROVIDERS = {
     Qwen: "CN",
     DeepSeek: "CN",
     Mistral: "FR",
+    Google: "US",
+    "Kimi AI": "CN",
+    Nvidia: "US",
+    "Minimax AI": "CN",
 } as const;
 
 function providerToCountryCode(provider: string): string {

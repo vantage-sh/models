@@ -37,6 +37,7 @@ const MODEL_REASONING_PREFIXES = {
     "codestral": true,
     "mixtral": true,
     "pixtral": true,
+    "voxtral": false,
     // DeepSeek
     "deepseek-r1": true,
     "deepseek-reasoner": true,
@@ -56,9 +57,17 @@ const MODEL_REASONING_PREFIXES = {
     "gemini-2-5": true,
     "gemini-2-0": true,
     "gemini-1-5": true,
+    "gemma-3": true,
     // IBM
     "granite-3": true,
     "granite": true,
+    // Kimi AI
+    "kimi-k2-thinking": true,
+    qwen3: true,
+    // Nvidia
+    "nvidia-nemotron-nano": true,
+    // Minimax AI
+    "minimax-m2": false,
 } as const;
 
 export function isReasoningModel(modelId: string): boolean {
@@ -120,6 +129,21 @@ export function isSelfHostableModel(modelId: string, provider: string): boolean 
             return true;
         }
         return false;
+    }
+
+    if (provider === "Kimi AI") {
+        // Kimi AI models are self-hostable
+        return true;
+    }
+
+    if (provider === "Nvidia") {
+        // Nvidia models are self-hostable
+        return true;
+    }
+
+    if (provider === "Minimax AI") {
+        // Minimax AI models are self-hostable
+        return true;
     }
 
     throw new Error(`Unknown self-hostable status for model ID: ${modelId} with provider: ${provider}. Please update isSelfHostableModel in scraper/constants.ts.`);
