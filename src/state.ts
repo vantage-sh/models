@@ -131,7 +131,6 @@ export function useStateItem<Key extends keyof State>(key: Key): [State[Key], (n
             };
         },
         () => currentState[key],
-        () => initialState[key],
     );
 
     return [getter, setter];

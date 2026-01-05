@@ -9,5 +9,5 @@ const models = getModelIdsAndNames(data);
 ---
 
 <MainLayout>
-    <Table idsAndNames={models} vendors={data.vendors} client:load />
+    <Table idsAndNames={models} vendors={data.vendors} client:only="react" />
 </MainLayout>
