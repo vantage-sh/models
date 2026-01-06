@@ -44,7 +44,7 @@ export function NumberFilter({
                     const newFilter: [OperatorTypes, number] = [filterValue[0], newNum];
                     query.columnFilters[columnName] = newFilter;
                     setFilterValue(newFilter);
-                    updateQuery();
+                    updateQuery(false);
                 }}
                 className="border text-sm border-gray-300 rounded-md p-1"
                 aria-label={`Value for filtering ${columnName}`}
