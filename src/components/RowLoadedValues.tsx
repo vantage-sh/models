@@ -38,7 +38,9 @@ function renderColumn(
     if (typeof cellVal === "number") {
         // Round to 4 decimal places
         const v = cellVal.toFixed(4);
-        return v.replace(ZERO_ENDING_REGEX, "").replace(DOT_ENDING_REGEX, "");
+        const x = v.replace(ZERO_ENDING_REGEX, "").replace(DOT_ENDING_REGEX, "");
+        if (x === "") return "0";
+        return x;
     }
 
     return String(cellVal);
