@@ -33,7 +33,7 @@ export default async function scrapeForexData() {
     };
 
     const selfPath = dirname(fileURLToPath(import.meta.url));
-    const dataJsonPath = join(selfPath, "..", "..", "public", "forex.json");
+    const dataJsonPath = join(selfPath, "..", "..", "src", "forex.json");
     await writeFile(dataJsonPath, JSON.stringify(currencyInfo, null, 2));
     console.log(`Wrote forex data to ${dataJsonPath}`);
 }

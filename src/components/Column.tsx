@@ -36,18 +36,20 @@ export default function Column({
 
     const Tag = columnType;
     return (
-        <Tag
-            className={`${className} relative`}
-            colSpan={colSpan}
-            style={{ width: initialWidth, minWidth: initialWidth }}
-        >
-            <div className="px-2">
-                {children}
-            </div>
-            <div 
-                className="absolute top-0 right-0 w-1 h-full cursor-col-resize bg-gray-200 hover:opacity-50 transition-all duration-150" 
-                onMouseDown={handleMouseDown} 
-            />
-        </Tag>
+        new Array({ length: colSpan || 1 }).map((_, i) => (
+            <Tag
+                className={`${className} relative`}
+                style={{ width: initialWidth, minWidth: initialWidth }}
+                key={i}
+            >
+                <div className="px-2">
+                    {children}
+                </div>
+                <div 
+                    className="absolute top-0 right-0 w-1 h-full cursor-col-resize bg-gray-200 hover:opacity-50 transition-all duration-150" 
+                    onMouseDown={handleMouseDown} 
+                />
+            </Tag>
+        ))
     )
 }

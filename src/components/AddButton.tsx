@@ -14,6 +14,7 @@ function SelectionMode({
     firstId,
     loadedValuesRows,
     vendors,
+    externalClickHandler,
 }: {
     queries: ColumnQuery[];
     setQueries: (cb: (prev: ColumnQuery[]) => ColumnQuery[]) => void;
@@ -21,9 +22,26 @@ function SelectionMode({
     firstId: string;
     loadedValuesRows: Map<string, LoadedValues>;
     vendors: Record<string, VendorInfo>;
+    externalClickHandler: React.RefObject<(() => void) | null>;
 }) {
     const [mode, setMode] = React.useState<null | "default" | "vendor">(null);
     const modalRef = React.useRef<HTMLDialogElement>(null);
+    const holderRef = React.useRef<HTMLDivElement>(null);
+    const [changes, setChanges] = React.useState(0);
+
+    const scrollIntoView = React.useCallback(() => {
+        if (holderRef.current) {
+            holderRef.current.scrollIntoView({ behavior: "smooth", block: "start" });
+        }
+    }, []);
+
+    React.useEffect(() => {
+        externalClickHandler.current = scrollIntoView;
+    }, []);
+
+    React.useLayoutEffect(() => {
+        scrollIntoView();
+    }, [changes]);
 
     const closer = (
         <button
@@ -46,7 +64,7 @@ function SelectionMode({
     switch (mode) {
         case "default":
             return (
-                <div className="flex mr-2">
+                <div ref={holderRef} className="flex pr-2">
                     {closer}
                     <DefaultSelector
                         queries={queries}
@@ -56,7 +74,7 @@ function SelectionMode({
             );
         case "vendor":
             return (
-                <div className="flex mr-2">
+                <div ref={holderRef} className="flex pr-2">
                     {closer}
                     <VendorSelector
                         setQueries={setQueriesAndPurgeLoadedValues}
@@ -68,7 +86,7 @@ function SelectionMode({
     }
 
     return (
-        <div className="flex mt-2 mr-2">
+        <div ref={holderRef} className="flex mt-2 pr-2">
             <SQLModal
                 ref={modalRef}
                 setQueries={setQueriesAndPurgeLoadedValues}
@@ -81,6 +99,7 @@ function SelectionMode({
                     className="py-1 px-2 flex items-center border border-gray-400 rounded hover:bg-gray-200"
                     onClick={() => {
                         setMode("default");
+                        setChanges((c) => c + 1);
                     }}
                 >
                     <ToolCase className="inline mr-1" size={16} />
@@ -90,6 +109,7 @@ function SelectionMode({
                     className="py-1 px-2 flex items-center border border-gray-400 rounded hover:bg-gray-200"
                     onClick={() => {
                         setMode("vendor");
+                        setChanges((c) => c + 1);
                     }}
                 >
                     <Warehouse className="inline mr-1" size={16} />
@@ -99,6 +119,7 @@ function SelectionMode({
                     className="py-1 px-2 flex items-center border border-gray-400 rounded hover:bg-gray-200"
                     onClick={() => {
                         modalRef.current?.showModal();
+                        setChanges((c) => c + 1);
                     }}
                 >
                     <Wrench className="inline mr-1" size={16} />
@@ -120,11 +141,21 @@ export default function AddButton({
 }) {
     const [queries, setQueries] = useStateItem("queries");
     const [selectionMode, setSelectionMode] = React.useState(false);
+    const externalClickHandler = React.useRef<() => void>(null);
 
     let innerContent = (
         <button
-            className="py-1 px-2 mt-2 mr-2 border border-gray-400 rounded hover:bg-gray-200"
-            onClick={() => setSelectionMode(true)}
+            className={`py-1 px-2 mt-2 mr-2 border border-gray-400 rounded hover:bg-gray-200 ${selectionMode ? "hidden" : ""}`}
+            onClick={() => {
+                setSelectionMode((old) => {
+                    if (old) {
+                        // This is a external click, so we need to call the handler
+                        externalClickHandler.current?.();
+                    }
+                    return true;
+                });
+            }}
+            id="add-button"
         >
             + Add Query
         </button>
@@ -132,14 +163,21 @@ export default function AddButton({
 
     if (selectionMode) {
         innerContent = (
-            <SelectionMode
-                queries={queries}
-                setQueries={setQueries}
-                loadedValuesRows={loadedValuesRows}
-                exit={() => setSelectionMode(false)}
-                firstId={firstId}
-                vendors={vendors}
-            />
+            <>
+                {innerContent}
+                <SelectionMode
+                    queries={queries}
+                    setQueries={setQueries}
+                    loadedValuesRows={loadedValuesRows}
+                    exit={() => {
+                        setSelectionMode(false);
+                        externalClickHandler.current = null;
+                    }}
+                    firstId={firstId}
+                    vendors={vendors}
+                    externalClickHandler={externalClickHandler}
+                />
+            </>
         );
     }
 

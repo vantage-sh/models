@@ -25,4 +25,4 @@ pnpm-debug.log*
 
 # Ignore the data JSON
 public/data.json
-public/forex.json
+src/forex.json

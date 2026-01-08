@@ -14,7 +14,7 @@ import SQLEditorButton from "./SQLEditorButton";
 import type { VendorInfo } from "../dataFormat";
 import { useStateItem } from "../state";
 import Link from "./Link";
-import CurrencyPicker from "./CurrencyPicker";
+import PortalRoot from "./PortalRoot";
 import ReactDOM from "react-dom";
 
 export type ColumnDataType =
@@ -159,7 +159,7 @@ function TableHeader({
         >
             <div className="flex items-center">
                 <div className="block grow">
-                    {col}
+                    <div className="line-clamp-2" title={col}>{col}</div>
                     <div className="w-full">
                         <QueryFilter
                             columnName={col}
@@ -343,9 +343,11 @@ function TableRow({
                         queryColumns={queryColumns}
                     />
                 ) : (
-                    <td colSpan={queries.length}>
-                        <LoadingEffect />
-                    </td>
+                    new Array({ length: queries.length }).map((_, i) => (
+                        <td key={i}>
+                            <LoadingEffect />
+                        </td>
+                    ))
                 )
             }
         </tr>
@@ -446,7 +448,7 @@ export default function Table({
         return v.filter(({ name }) => name.toLowerCase().includes(nameFilter.toLowerCase()));
     }, [idsAndNames, nameFilter, queries, queryColumns, loadedValuesRows, currentSorting]);
 
-    const portalRoot = ReactDOM.createPortal(<CurrencyPicker />, document.getElementById("portal-root")!);
+    const portalRoot = ReactDOM.createPortal(<PortalRoot />, document.getElementById("portal-root")!);
 
     return (
         <StrictIfDev>
@@ -454,17 +456,17 @@ export default function Table({
             <div className="flex-1 overflow-x-auto h-full">
                 <div className="flex items-start min-w-max">
                     <table className="h-full">
-                        <thead>
+                        <thead className="sticky top-0 bg-white z-10 shadow-[0_2px_0_0_rgb(209,213,219)]">
                             <tr>
-                            <th className="pb-1 relative">
-                                <NameFilter
-                                    nameFilter={nameFilter}
-                                    setNameFilter={setNameFilter}
-                                />
-                                <div 
-                                    className="absolute top-0 right-0 w-1 h-full bg-gray-200 hover:opacity-50 transition-all duration-150" 
-                                />
-                            </th>
+                                <th className="pb-1 relative bg-white">
+                                    <NameFilter
+                                        nameFilter={nameFilter}
+                                        setNameFilter={setNameFilter}
+                                    />
+                                    <div 
+                                        className="absolute top-0 right-0 w-1 h-full bg-gray-200 hover:opacity-50 transition-all duration-150" 
+                                    />
+                                </th>
                                 {
                                     queries.map((q, i) => (
                                         <TableHeader
@@ -530,7 +532,7 @@ export default function Table({
                             }
                         </tbody>
                     </table>
-                    <div className="ml-4 shrink-0">
+                    <div className="ml-4 shrink-0 sticky top-0 self-start">
                         <AddButton
                             loadedValuesRows={loadedValuesRows[0]}
                             firstId={idsAndNames[0]?.id || ""}
