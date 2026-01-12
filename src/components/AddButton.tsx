@@ -39,7 +39,7 @@ function SelectionMode({
         externalClickHandler.current = scrollIntoView;
     }, []);
 
-    React.useLayoutEffect(() => {
+    React.useEffect(() => {
         scrollIntoView();
     }, [changes]);
 

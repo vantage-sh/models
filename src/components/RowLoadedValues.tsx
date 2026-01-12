@@ -1,5 +1,4 @@
-import type { ColumnQuery, LoadedValues } from "./Table";
-import LoadingEffect from "./LoadingEffect";
+import type { ColumnQuery } from "./Table";
 import Column from "./Column";
 import { useStateItem } from "../state";
 import forexData from "../forex.json";
@@ -71,8 +70,10 @@ export default function RowLoadedValues({
         if (val === null) {
             return (
                 new Array({ length: getColSpan(i) }).map((_, j) => (
-                    <td key={`${i}-${j}`} colSpan={1}>
-                        <LoadingEffect />
+                    <td key={`${i}-${j}`}>
+                        <div 
+                            className="absolute top-0 right-0 w-1 h-full cursor-col-resize bg-gray-200 hover:opacity-50 transition-all duration-150" 
+                        />
                     </td>
                 ))
             );

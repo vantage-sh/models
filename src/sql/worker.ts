@@ -9,7 +9,7 @@ export type PayloadResult = [0, string] | [1, { [column: string]: any } | null] 
 const compilationCache = new Map<string, Statement>();
 
 self.onmessage = workerMessageHandler(
-    async (payload: Uint8Array) => {
+    async (payload: Init) => {
         const SQL = await initSqlJs({
             locateFile: () => sqlWasm,
         });
@@ -40,7 +40,6 @@ self.onmessage = workerMessageHandler(
             const res = [];
             while (query.step()) {
                 res.push(query.getAsObject());
-                query.reset();
             }
             return [2, res];
         } catch (e) {

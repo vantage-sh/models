@@ -19,6 +19,34 @@ class IndividualWorker<InitArg, Payload, ExpectedResult> {
 
     constructor(private workerGenerator: () => Worker) {}
 
+    private async processRunners(worker: Worker) {
+        const oldRunners = this.runners;
+        this.runners = [];
+
+        await new Promise<void>((baseResolve, baseReject) => {
+            const payloads = oldRunners.map(([payload]) => payload);
+            worker.onerror = (error) => {
+                for (const [,, reject] of oldRunners) {
+                    reject(error);
+                }
+                baseReject(error);
+            };
+            worker.onmessage = (event) => {
+                const allResults = event.data as ExpectedResult[];
+                for (let i = 0; i < oldRunners.length; i++) {
+                    const [, resolve] = oldRunners[i];
+                    resolve(allResults[i]);
+                }
+                baseResolve();
+            };
+            worker.postMessage(payloads);
+        });
+
+        if (this.runners.length > 0) {
+            await this.processRunners(worker);
+        }
+    }
+
     async execute(payload: Payload): Promise<ExpectedResult> {
         if (!this.initDone) {
             throw new Error("Not initialised");
@@ -34,24 +62,11 @@ class IndividualWorker<InitArg, Payload, ExpectedResult> {
         this.worker = null;
 
         await new Promise((resolve) => setTimeout(resolve, 1));
-        const oldRunners = this.runners;
-        this.runners = [];
-
-        const payloads = oldRunners.map(([payload]) => payload);
-        worker!.onerror = (error) => {
-            for (const [,, reject] of oldRunners) {
-                reject(error);
-            }
-        };
-        worker!.onmessage = (event) => {
-            const allResults = event.data as ExpectedResult[];
-            for (let i = 0; i < oldRunners.length; i++) {
-                const [, resolve] = oldRunners[i];
-                resolve(allResults[i]);
-                this.worker = worker;
-            }
-        };
-        worker!.postMessage(payloads);
+        try {
+            await this.processRunners(worker);
+        } finally {
+            this.worker = worker;
+        }
 
         return promise;
     }
@@ -85,24 +100,13 @@ class IndividualWorker<InitArg, Payload, ExpectedResult> {
     }
 }
 
-export async function createWorkerPool<InitArg, Payload, ExpectedResult>(
+export async function createSQLWorker<InitArg, Payload, ExpectedResult>(
     workerGenerator: () => Worker,
     initArg: InitArg,
 ) {
-    const workers: IndividualWorker<InitArg, Payload, ExpectedResult>[] = [];
-    const numWorkers = navigator.hardwareConcurrency || 4;
-    for (let i = 0; i < numWorkers; i++) {
-        const worker = new IndividualWorker<InitArg, Payload, ExpectedResult>(workerGenerator);
-        await worker.initialise(initArg);
-        workers.push(worker);
-    }
-
-    let i = 0;
-    return async (payload: Payload) => {
-        const worker = workers[i];
-        i = (i + 1) % numWorkers;
-        return worker.execute(payload);
-    };
+    const worker = new IndividualWorker<InitArg, Payload, ExpectedResult>(workerGenerator);
+    await worker.initialise(initArg);
+    return (payload: Payload) => worker.execute(payload);
 }
 
 const _unset = Symbol("unset");

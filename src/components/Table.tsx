@@ -3,7 +3,6 @@ import { loadSingleRow } from "../sqlEngine";
 import BooleanFilter from "./filters/BooleanFilter";
 import StringFilter from "./filters/StringFilter";
 import { NumberFilter } from "./filters/NumberFilter";
-import LoadingEffect from "./LoadingEffect";
 import RowLoadedValues, { DEFAULT_COLUMN_WIDTH } from "./RowLoadedValues";
 import sortValue from "./utils/sortValue";
 import SortingButtons from "./SortingButtons";
@@ -128,7 +127,9 @@ function TableHeader({
     if (queryColumns === null) {
         return (
             <th className="pb-1">
-                <LoadingEffect />
+                <div 
+                    className="absolute top-0 right-0 w-1 h-full cursor-col-resize bg-gray-200 hover:opacity-50 transition-all duration-150" 
+                />
             </th>
         );
     }
@@ -216,11 +217,11 @@ async function loadSingleRowData(
     mountedRef: [boolean],
 ) {
     const loadedColumns: (any[] | null | { error: string })[] = [];
-    const write = () => {
+    const write = React.useCallback(() => {
         if (!mountedRef[0]) return false;
         setLoadedValues(loadedColumns);
         return true;
-    };
+    }, [mountedRef]);
 
     // Firstly, handle any filtered columns
     let noFiltersNegative = true;
@@ -282,6 +283,7 @@ function getQueriesKey(queries: ColumnQuery[]): string {
         key = queries.map((q) => q.query + JSON.stringify(q.columnFilters) + JSON.stringify(q.columnExplicitlySetDataTypes)).join("||");
         cachedQueriesKey.set(queries, key);
     }
+    console.log("getQueriesKey", key);
     return key;
 }
 
@@ -316,6 +318,7 @@ function TableRow({
             setRowVisible,
             mounted,
         );
+        console.log("loadedValues", loadedValues);
 
         return () => {
             mounted[0] = false;
@@ -345,7 +348,7 @@ function TableRow({
                 ) : (
                     new Array({ length: queries.length }).map((_, i) => (
                         <td key={i}>
-                            <LoadingEffect />
+                            
                         </td>
                     ))
                 )

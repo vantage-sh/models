@@ -1,5 +1,5 @@
 import type { Init, Payload, PayloadResult } from "./sql/worker";
-import { createWorkerPool } from "./components/utils/WorkerManager";
+import { createSQLWorker } from "./components/utils/WorkerManager";
 import type { DataFormat } from "./dataFormat";
 
 /** Gets the name/ID for a model. */
@@ -35,7 +35,7 @@ function asyncIfWindow<T>(fn: () => Promise<T>): Promise<T> {
     return Promise.resolve(null as T);
 }
 
-const poolPromise = asyncIfWindow(async () => createWorkerPool<Init, Payload, PayloadResult>(
+const poolPromise = asyncIfWindow(async () => createSQLWorker<Init, Payload, PayloadResult>(
     () => new Worker(new URL("./sql/worker.ts", import.meta.url), { type: "module" }),
     await loadDataDb(),
 ));
