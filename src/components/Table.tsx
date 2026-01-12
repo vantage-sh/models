@@ -217,11 +217,11 @@ async function loadSingleRowData(
     mountedRef: [boolean],
 ) {
     const loadedColumns: (any[] | null | { error: string })[] = [];
-    const write = React.useCallback(() => {
+    const write = () => {
         if (!mountedRef[0]) return false;
         setLoadedValues(loadedColumns);
         return true;
-    }, [mountedRef]);
+    };
 
     // Firstly, handle any filtered columns
     let noFiltersNegative = true;
@@ -283,7 +283,6 @@ function getQueriesKey(queries: ColumnQuery[]): string {
         key = queries.map((q) => q.query + JSON.stringify(q.columnFilters) + JSON.stringify(q.columnExplicitlySetDataTypes)).join("||");
         cachedQueriesKey.set(queries, key);
     }
-    console.log("getQueriesKey", key);
     return key;
 }
 
@@ -318,7 +317,6 @@ function TableRow({
             setRowVisible,
             mounted,
         );
-        console.log("loadedValues", loadedValues);
 
         return () => {
             mounted[0] = false;
