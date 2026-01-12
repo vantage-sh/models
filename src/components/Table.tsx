@@ -418,13 +418,6 @@ function NameFilter({
     </div>;
 }
 
-function StrictIfDev({ children }: { children: React.ReactNode }) {
-    if (process.env.NODE_ENV === "production") {
-        return children;
-    }
-    return <StrictMode>{children}</StrictMode>;
-}
-
 export default function Table({
     idsAndNames,
     vendors,
@@ -452,7 +445,7 @@ export default function Table({
     const portalRoot = ReactDOM.createPortal(<PortalRoot />, document.getElementById("portal-root")!);
 
     return (
-        <StrictIfDev>
+        <>
             {portalRoot}
             <div className="flex-1 overflow-x-auto h-full">
                 <div className="flex items-start min-w-max">
@@ -542,6 +535,6 @@ export default function Table({
                     </div>
                 </div>
             </div>
-        </StrictIfDev>
+        </>
     );
 }
