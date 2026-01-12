@@ -38,11 +38,11 @@ export default function Column({
     return (
         new Array({ length: colSpan || 1 }).map((_, i) => (
             <Tag
-                className={`${className} relative`}
+                className={`${className} relative align-bottom`}
                 style={{ width: initialWidth, minWidth: initialWidth }}
                 key={i}
             >
-                <div className="px-2">
+                <div className="px-2 flex flex-col h-full">
                     {children}
                 </div>
                 <div 

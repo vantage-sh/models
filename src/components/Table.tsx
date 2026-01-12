@@ -158,7 +158,7 @@ function TableHeader({
                 updateQuery(false);
             }}
         >
-            <div className="flex items-center mb-1">
+            <div className="flex items-center mb-1 grow">
                 <div className="block grow">
                     <div className="line-clamp-2" title={col}>{col}</div>
                 </div>
@@ -186,7 +186,7 @@ function TableHeader({
                     )
                 }
             </div>
-            <div className="w-full">
+            <div className="w-full mt-auto">
                 <QueryFilter
                     columnName={col}
                     query={query}
@@ -409,13 +409,13 @@ function NameFilter({
     nameFilter: string;
     setNameFilter: (nameFilter: string) => void;
 }) {
-    return <div className="px-2">
-        Name
+    return <div className="px-2 flex flex-col h-full">
+        <div className="grow">Name</div>
         <input
             type="text"
             value={nameFilter}
             onChange={(e) => setNameFilter(e.target.value)}
-            className="w-full border text-sm border-gray-300 rounded-md p-1"
+            className="w-full border text-sm border-gray-300 rounded-md p-1 mt-auto"
         />
     </div>;
 }
@@ -454,7 +454,7 @@ export default function Table({
                     <table className="h-full">
                         <thead className="sticky top-0 bg-white z-10 shadow-[0_2px_0_0_rgb(209,213,219)]">
                             <tr>
-                                <th className="pb-1 relative bg-white">
+                                <th className="pb-1 relative bg-white align-bottom">
                                     <NameFilter
                                         nameFilter={nameFilter}
                                         setNameFilter={setNameFilter}
