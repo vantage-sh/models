@@ -4,6 +4,7 @@ import { XIcon } from "lucide-react";
 import ColumnCustomTypeSelector from "./ColumnCustomTypeSelector";
 import Button from "./Button";
 import { loadMultipleRows } from "../sqlEngine";
+import QueryHelp from "./QueryHelp";
 
 export type SQLModalProps = {
     exit: () => void;
@@ -86,13 +87,7 @@ function SQLModalInner({
             <ColumnCustomTypeSelector
                 columnCustomTypes={columnCustomTypes.current}
             />
-            <p className="mt-4">
-                Define the SQL query you would like to use to get column data. The first parameter
-                for queries is the ID of the model in that row.
-            </p>
-            <p className="mt-4">
-                TODO: Query help
-            </p>
+            <QueryHelp />
             <Button className="mt-4">
                 Add Columns
             </Button>

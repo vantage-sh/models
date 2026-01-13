@@ -6,6 +6,7 @@ import ColumnCustomTypeSelector from "./ColumnCustomTypeSelector";
 import Button from "./Button";
 import { loadSingleRow } from "../sqlEngine";
 import { detectColumnRename, migrateColumnConfigs } from "./utils/migrateColumnConfigs";
+import QueryHelp from "./QueryHelp";
 
 type SQLEditorButtonProps = {
     query: ColumnQuery;
@@ -105,13 +106,7 @@ export default function SQLEditorButton({ query, firstId, updateQuery }: SQLEdit
                             <ColumnCustomTypeSelector
                                 columnCustomTypes={columnCustomTypes.current}
                             />
-                            <p className="mt-4">
-                                Define the SQL query you would like to use to get column data. The first parameter
-                                for queries is the ID of the model in that row.
-                            </p>
-                            <p className="mt-4">
-                                TODO: Query help
-                            </p>
+                            <QueryHelp />
                             <Button className="mt-4">
                                 Save Changes
                             </Button>
