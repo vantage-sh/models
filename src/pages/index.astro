@@ -1,13 +1,14 @@
 ---
 import Table from '../components/Table';
-import { getModelIdsAndNames } from '../sqlEngine';
+import { getModelIdsAndNames, getImageModelIdsAndNames } from '../sqlEngine';
 import data from "../data";
 import MainLayout from '../layouts/MainLayout.astro';
 
 // Get the models for the server-side
-const models = getModelIdsAndNames(data);
+const llmModels = getModelIdsAndNames(data);
+const imageModels = getImageModelIdsAndNames(data);
 ---
 
 <MainLayout>
-    <Table idsAndNames={models} vendors={data.vendors} client:only="react" />
+    <Table llmModels={llmModels} imageModels={imageModels} vendors={data.vendors} client:only="react" />
 </MainLayout>

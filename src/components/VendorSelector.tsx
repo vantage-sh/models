@@ -1,6 +1,7 @@
 import React from "react";
 import type { ColumnDataType, ColumnQuery } from "./Table";
 import type { VendorInfo } from "../dataFormat";
+import { useStateItem } from "../state";
 
 type VendorQueryBuilder = {
     name: string;
@@ -153,16 +154,107 @@ const vendorQueryBuilders: VendorQueryBuilder[] = [
     },
 ];
 
+// Image model vendor query builders
+function imageVendorOnlySelectAsWrapper(niceName: string, key: string, explicitDataType?: ColumnDataType) {
+    return (vendorSlug: string | null, vendorName: string | null) => {
+        let niceNameReplaced: string;
+        if (vendorName === null) {
+            niceNameReplaced = niceName.replace("?", "Average");
+        } else {
+            niceNameReplaced = niceName.replace("?", vendorName);
+        }
+        let vendorQueryPart = "";
+        let innerKey = key;
+        if (vendorSlug === null) {
+            innerKey = `AVG(${key})`;
+        } else {
+            vendorQueryPart = `vendor_id = '${vendorSlug}' AND `;
+        }
+        return [
+            `SELECT ${innerKey} AS \`${niceNameReplaced}\` FROM image_models_vendors WHERE ${vendorQueryPart}model_id = ?`,
+            explicitDataType ? { [niceNameReplaced]: explicitDataType } : {},
+        ] as [string, { [key: string]: ColumnDataType }];
+    };
+}
+
+function imageVendorPricingSelectAsWrapper(
+    niceName: string,
+    resolution: string,
+    explicitDataType?: ColumnDataType,
+) {
+    return (vendorSlug: string | null, vendorName: string | null) => {
+        let niceNameReplaced: string;
+        if (vendorName === null) {
+            niceNameReplaced = niceName.replace("?", "Average");
+        } else {
+            niceNameReplaced = niceName.replace("?", vendorName);
+        }
+
+        const explicitDataTypes = explicitDataType
+            ? { [niceNameReplaced]: explicitDataType }
+            : {};
+
+        let vendorIdQueryPart = "";
+        if (vendorSlug !== null) {
+            vendorIdQueryPart = `vendor_id = '${vendorSlug}' AND `;
+        }
+
+        const query = `SELECT AVG(price_per_image) AS \`${niceNameReplaced}\`
+    FROM image_models_vendors_pricing
+    WHERE ${vendorIdQueryPart}model_id = ? AND resolution = '${resolution}'`;
+
+        return [
+            query,
+            explicitDataTypes,
+        ] as [string, { [key: string]: ColumnDataType }];
+    };
+}
+
+const imageVendorQueryBuilders: VendorQueryBuilder[] = [
+    {
+        name: "Latency (ms)",
+        region: false,
+        queryBuilder: imageVendorOnlySelectAsWrapper("? Latency (ms)", "latency_ms"),
+    },
+    {
+        name: "Low Capacity",
+        region: false,
+        queryBuilder: imageVendorOnlySelectAsWrapper("? Low Capacity", "low_capacity", "boolean"),
+    },
+    {
+        name: "Price per Image (512x512)",
+        region: false,
+        queryBuilder: imageVendorPricingSelectAsWrapper("? Price (512x512)", "512x512", "currency"),
+    },
+    {
+        name: "Price per Image (1024x1024)",
+        region: false,
+        queryBuilder: imageVendorPricingSelectAsWrapper("? Price (1024x1024)", "1024x1024", "currency"),
+    },
+    {
+        name: "Price per Image (1024x1792)",
+        region: false,
+        queryBuilder: imageVendorPricingSelectAsWrapper("? Price (1024x1792)", "1024x1792", "currency"),
+    },
+    {
+        name: "Price per Image (1792x1024)",
+        region: false,
+        queryBuilder: imageVendorPricingSelectAsWrapper("? Price (1792x1024)", "1792x1024", "currency"),
+    },
+];
+
 function VendorItems({
     vendors,
     vendorSlug,
     setQueries,
     exit,
+    modelView,
 }: {
     vendors: Record<string, VendorInfo>;
     vendorSlug: string;
     setQueries: (cb: (prev: ColumnQuery[]) => ColumnQuery[]) => void;
     exit: () => void;
+    modelView: "llm" | "image";
 }) {
     let vendorInfo: VendorInfo | null = null;
     if (vendorSlug) {
@@ -171,6 +263,9 @@ function VendorItems({
     const [queryBuilderIndex, setQueryBuilderIndex] = React.useState<number>(-1);
     const [region, setRegion] = React.useState<string | { eu: true } | null>(null);
     const [disabled, setDisabled] = React.useState(true);
+
+    // Use appropriate query builders based on view
+    const activeQueryBuilders = modelView === "llm" ? vendorQueryBuilders : imageVendorQueryBuilders;
 
     const handleQueryBuilderChange = React.useCallback((e: React.ChangeEvent<HTMLSelectElement>) => {
         setQueryBuilderIndex(parseInt(e.target.value, 10));
@@ -182,7 +277,7 @@ function VendorItems({
         if (queryBuilderIndex === -1) {
             return;
         }
-        const builder = vendorQueryBuilders[queryBuilderIndex];
+        const builder = activeQueryBuilders[queryBuilderIndex];
         let queryAndTypes: [string, { [key: string]: ColumnDataType }];
         if (builder.region) {
             queryAndTypes = builder.queryBuilder(vendorSlug || null, vendorInfo?.cleanName ?? null, region);
@@ -200,7 +295,7 @@ function VendorItems({
             },
         ]);
         exit();
-    }, [queryBuilderIndex, vendorSlug, vendorInfo, region, setQueries, exit]);
+    }, [queryBuilderIndex, vendorSlug, vendorInfo, region, setQueries, exit, activeQueryBuilders]);
 
     return (
         <div>
@@ -215,14 +310,14 @@ function VendorItems({
                     <option value={-1} disabled>
                         Select an option
                     </option>
-                    {vendorQueryBuilders.map((builder, index) => (
+                    {activeQueryBuilders.map((builder, index) => (
                         <option key={index} value={index}>
                             {builder.name}
                         </option>
                     ))}
                 </select>
             </div>
-            {queryBuilderIndex !== -1 && vendorQueryBuilders[queryBuilderIndex].region && (
+            {queryBuilderIndex !== -1 && activeQueryBuilders[queryBuilderIndex].region && (
                 <div className="mb-4">
                     <label className="block mb-2 font-medium">Select Region:</label>
                     <select
@@ -286,6 +381,7 @@ export default function VendorSelector({
     exit: () => void;
     vendors: Record<string, VendorInfo>;
 }) {
+    const [modelView] = useStateItem("modelView");
     const [selectedVendorSlug, setSelectedVendorSlug] = React.useState<string>("");
 
     const handleVendorChange = React.useCallback((e: React.ChangeEvent<HTMLSelectElement>) => {
@@ -314,6 +410,7 @@ export default function VendorSelector({
                 vendorSlug={selectedVendorSlug}
                 setQueries={setQueries}
                 exit={exit}
+                modelView={modelView}
             />
         </div>
     )

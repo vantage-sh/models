@@ -139,7 +139,13 @@ export default function AddButton({
     loadedValuesRows: Map<string, LoadedValues>;
     vendors: Record<string, VendorInfo>;
 }) {
-    const [queries, setQueries] = useStateItem("queries");
+    const [modelView] = useStateItem("modelView");
+    const [llmQueries, setLlmQueries] = useStateItem("queries");
+    const [imageQueries, setImageQueries] = useStateItem("imageQueries");
+
+    // Select appropriate queries based on view
+    const queries = modelView === "llm" ? llmQueries : imageQueries;
+    const setQueries = modelView === "llm" ? setLlmQueries : setImageQueries;
     const [selectionMode, setSelectionMode] = React.useState(false);
     const externalClickHandler = React.useRef<() => void>(null);
 

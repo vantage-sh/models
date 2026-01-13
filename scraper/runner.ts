@@ -8,6 +8,8 @@ import scrapeIbmData from "./scrapers/ibm";
 import scrapeOpenaiData from "./scrapers/openai";
 import scrapeDeepseekData from "./scrapers/deepseek";
 import scrapeForexData from "./scrapers/forex";
+import scrapeAwsImageData from "./scrapers/aws-image";
+import scrapeOpenaiImageData from "./scrapers/openai-image";
 import { writeFileSync } from "fs";
 import { dirname, join } from "path";
 import { fileURLToPath } from "url";
@@ -17,6 +19,7 @@ async function main() {
     const fmt: DataFormat = {
         vendors: {},
         models: {},
+        imageModels: {},
     };
     await Promise.all([
         scrapeAwsData(fmt),
@@ -28,6 +31,9 @@ async function main() {
         scrapeOpenaiData(fmt),
         scrapeDeepseekData(fmt),
         scrapeForexData(),
+        // Image generation scrapers
+        scrapeAwsImageData(fmt),
+        scrapeOpenaiImageData(fmt),
     ]);
 
     // Output the data as JSON

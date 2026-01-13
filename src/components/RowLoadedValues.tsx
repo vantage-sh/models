@@ -72,8 +72,14 @@ export default function RowLoadedValues({
     loadedValues: (any[] | null | { error: string })[];
     queryColumns: (string[] | null)[];
 }) {
-    const [queries, setQueries] = useStateItem("queries");
+    const [modelView] = useStateItem("modelView");
+    const [llmQueries, setLlmQueries] = useStateItem("queries");
+    const [imageQueries, setImageQueries] = useStateItem("imageQueries");
     const [currency] = useStateItem("currency");
+
+    // Select appropriate queries based on view
+    const queries = modelView === "llm" ? llmQueries : imageQueries;
+    const setQueries = modelView === "llm" ? setLlmQueries : setImageQueries;
 
     const getColSpan = (index: number) => {
         const cols = queryColumns[index];

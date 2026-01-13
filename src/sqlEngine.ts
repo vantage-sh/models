@@ -2,9 +2,17 @@ import type { Init, Payload, PayloadResult } from "./sql/worker";
 import { createSQLWorker } from "./components/utils/WorkerManager";
 import type { DataFormat } from "./dataFormat";
 
-/** Gets the name/ID for a model. */
+/** Gets the name/ID for LLM models. */
 export function getModelIdsAndNames(data: DataFormat): {id: string; name: string }[] {
     return Object.entries(data.models).map(([modelId, modelData]) => ({
+        id: modelId,
+        name: modelData.cleanName,
+    })).sort((a, b) => a.name.localeCompare(b.name));
+}
+
+/** Gets the name/ID for image generation models. */
+export function getImageModelIdsAndNames(data: DataFormat): {id: string; name: string }[] {
+    return Object.entries(data.imageModels || {}).map(([modelId, modelData]) => ({
         id: modelId,
         name: modelData.cleanName,
     })).sort((a, b) => a.name.localeCompare(b.name));

@@ -293,6 +293,8 @@ function TableRow({
     setQueryColumns,
     loadedValues,
     setLoadedValues,
+    queries,
+    modelView,
 }: {
     id: string;
     name: string;
@@ -300,9 +302,10 @@ function TableRow({
     setQueryColumns: (cols: (string[] | null)[]) => void;
     loadedValues: LoadedValues | null;
     setLoadedValues: (vals: LoadedValues | null) => void;
+    queries: ColumnQuery[];
+    modelView: "llm" | "image";
 }) {
     const [rowVisible, setRowVisible] = React.useState(true);
-    const [queries] = useStateItem("queries");
 
     const queriesKey = getQueriesKey(queries);
     React.useEffect(() => {
@@ -321,20 +324,21 @@ function TableRow({
         return () => {
             mounted[0] = false;
         };
-    }, [id, queriesKey]);
+    }, [id, queriesKey, modelView]);
 
     if (!rowVisible) {
         return null;
     }
 
+    const modelPath = modelView === "llm" ? "models" : "image-models";
     return (
         <tr className="border-t border-gray-300">
             <td className="relative">
                 <div className="px-2">
-                    <Link href={`/models/${id}`}>{name}</Link>
+                    <Link href={`/${modelPath}/${id}`}>{name}</Link>
                 </div>
-                <div 
-                    className="absolute top-0 right-0 w-1 h-full bg-gray-200 hover:opacity-50 transition-all duration-150" 
+                <div
+                    className="absolute top-0 right-0 w-1 h-full bg-gray-200 hover:opacity-50 transition-all duration-150"
                 />
             </td>
             {
@@ -347,7 +351,7 @@ function TableRow({
                     new Array({ length: queries.length }).map((_, i) => (
                         <td key={i}>
                             <div
-                                className="absolute top-0 right-0 w-1 h-full cursor-col-resize bg-gray-200 hover:opacity-50 transition-all duration-150" 
+                                className="absolute top-0 right-0 w-1 h-full cursor-col-resize bg-gray-200 hover:opacity-50 transition-all duration-150"
                             />
                         </td>
                     ))
@@ -421,13 +425,22 @@ function NameFilter({
 }
 
 export default function Table({
-    idsAndNames,
+    llmModels,
+    imageModels,
     vendors,
 }: {
-    idsAndNames: { id: string; name: string }[];
+    llmModels: { id: string; name: string }[];
+    imageModels: { id: string; name: string }[];
     vendors: Record<string, VendorInfo>;
 }) {
-    const [queries, setQueries] = useStateItem("queries");
+    const [modelView] = useStateItem("modelView");
+    const [llmQueries, setLlmQueries] = useStateItem("queries");
+    const [imageQueries, setImageQueries] = useStateItem("imageQueries");
+
+    // Select appropriate data based on view
+    const idsAndNames = modelView === "llm" ? llmModels : imageModels;
+    const queries = modelView === "llm" ? llmQueries : imageQueries;
+    const setQueries = modelView === "llm" ? setLlmQueries : setImageQueries;
     const [nameFilter, setNameFilter] = useStateItem("nameFilter");
     const [queryColumns, setQueryColumns] = React.useState<(string[] | null)[]>(
         Array(queries.length).fill(null),
@@ -436,6 +449,12 @@ export default function Table({
         () => [new Map(idsAndNames.map(({ id }) => [id, null]))]
     );
     const [currentSorting, setCurrentSorting] = useStateItem("currentSorting");
+
+    // Reset state when modelView changes
+    React.useEffect(() => {
+        setQueryColumns(Array(queries.length).fill(null));
+        setLoadedValuesRows([new Map(idsAndNames.map(({ id }) => [id, null]))]);
+    }, [modelView]);
     const sortedIdsAndNames = React.useMemo(() => {
         const v = sortIdsAndNames(idsAndNames, queries, queryColumns, loadedValuesRows[0], currentSorting);
         if (nameFilter === "") {
@@ -512,7 +531,7 @@ export default function Table({
                                 sortedIdsAndNames.map(({ id, name }) => (
                                     <TableRow
                                         id={id}
-                                        key={id}
+                                        key={`${modelView}-${id}`}
                                         name={name}
                                         queryColumns={queryColumns}
                                         setQueryColumns={setQueryColumns}
@@ -523,6 +542,8 @@ export default function Table({
                                                 return [prev[0]];
                                             });
                                         }}
+                                        queries={queries}
+                                        modelView={modelView}
                                     />
                                 ))
                             }

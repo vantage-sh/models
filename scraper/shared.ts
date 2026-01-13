@@ -1,4 +1,4 @@
-import type { DataFormat, Model, VendorModelInfo } from "@/src/dataFormat";
+import type { DataFormat, Model, VendorModelInfo, ImageModel, ImagePricingTier, ImageResolution } from "@/src/dataFormat";
 import {
     getTokeniserForModel,
     isReasoningModel,
@@ -113,4 +113,71 @@ export async function addModelToFormat(
 // Convert price per million tokens to price per token
 export function perMillion(price: number): number {
     return price / 1_000_000;
+}
+
+// Image model providers
+export const IMAGE_PROVIDERS: Record<string, string> = {
+    "Stability AI": "GB",
+    "Amazon": "US",
+    "OpenAI": "US",
+};
+
+export type ImageModelPricing = {
+    resolution: ImageResolution;
+    pricePerImage: number;
+    generationSpeedMs?: number;
+};
+
+export type ImageModelDefinition = {
+    name: string;
+    provider: string;
+    supportedResolutions: ImageResolution[];
+    supportsNegativePrompts: boolean;
+    pricing: ImageModelPricing[];
+};
+
+export function imageProviderToCountryCode(provider: string): string {
+    const res = IMAGE_PROVIDERS[provider];
+    if (!res) throw new Error(`Unknown image provider: ${provider}. Add it to IMAGE_PROVIDERS in scraper/shared.ts.`);
+    return res;
+}
+
+export async function addImageModelToFormat(
+    fmt: DataFormat,
+    vendorRef: string,
+    regionCode: string,
+    model: ImageModelDefinition
+): Promise<void> {
+    const slugifiedModel = slugify(model.name, model.provider);
+    let modelEntry = fmt.imageModels[slugifiedModel];
+
+    if (!modelEntry) {
+        modelEntry = {
+            cleanName: model.name,
+            brand: model.provider,
+            companyCountryCode: imageProviderToCountryCode(model.provider),
+            vendors: [],
+            selfhostable: false,
+            supportedResolutions: model.supportedResolutions,
+            supportsNegativePrompts: model.supportsNegativePrompts,
+        };
+        fmt.imageModels[slugifiedModel] = modelEntry;
+    }
+
+    let vendor = modelEntry.vendors.find(v => v.vendorRef === vendorRef);
+    if (!vendor) {
+        vendor = {
+            vendorRef,
+            regionPricing: {},
+            latencyMs: 0,
+            lowCapacity: false,
+        };
+        modelEntry.vendors.push(vendor);
+    }
+
+    vendor.regionPricing[regionCode] = model.pricing.map(p => ({
+        resolution: p.resolution,
+        pricePerImage: p.pricePerImage,
+        generationSpeedMs: p.generationSpeedMs,
+    }));
 }

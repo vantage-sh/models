@@ -96,6 +96,45 @@ export const GET: APIRoute = () => {
             }
         }
 
+        // Add the image models
+        const imageModelsPrep = db.prepare("INSERT INTO image_models (model_id, clean_name, brand, company_country_code, selfhostable, supports_negative_prompts) VALUES (?, ?, ?, ?, ?, ?)");
+        const imageModelsResolutionsPrep = db.prepare("INSERT INTO image_models_resolutions (model_id, resolution) VALUES (?, ?)");
+        const imageModelsVendorsPrep = db.prepare("INSERT INTO image_models_vendors (model_id, vendor_id, latency_ms, low_capacity) VALUES (?, ?, ?, ?)");
+        const imageModelsVendorsPricingPrep = db.prepare("INSERT INTO image_models_vendors_pricing (model_id, vendor_id, region_code, resolution, price_per_image, generation_speed_ms) VALUES (?, ?, ?, ?, ?, ?)");
+        for (const [modelId, modelData] of Object.entries(data.imageModels || {})) {
+            imageModelsPrep.run([
+                modelId,
+                modelData.cleanName,
+                modelData.brand,
+                modelData.companyCountryCode,
+                modelData.selfhostable ? 1 : 0,
+                modelData.supportsNegativePrompts ? 1 : 0,
+            ]);
+            for (const resolution of modelData.supportedResolutions) {
+                imageModelsResolutionsPrep.run([modelId, resolution]);
+            }
+            for (const vendor of modelData.vendors) {
+                imageModelsVendorsPrep.run([
+                    modelId,
+                    vendor.vendorRef,
+                    vendor.latencyMs || null,
+                    vendor.lowCapacity ? 1 : 0,
+                ]);
+                for (const [regionCode, pricingTiers] of Object.entries(vendor.regionPricing)) {
+                    for (const tier of pricingTiers) {
+                        imageModelsVendorsPricingPrep.run([
+                            modelId,
+                            vendor.vendorRef,
+                            regionCode,
+                            tier.resolution,
+                            tier.pricePerImage,
+                            tier.generationSpeedMs ?? null,
+                        ]);
+                    }
+                }
+            }
+        }
+
         // Return the database as a buffer
         db.close();
         const buffer = readFileSync(tmpFile);

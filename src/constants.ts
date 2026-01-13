@@ -18,3 +18,34 @@ export const defaultQueries = [
     singleValue("swe_bench_resolved_percentage", "SWE-Bench Resolved %"),
     singleValue("skatebench_score", "SkateBench Score"),
 ];
+
+// Image model default queries
+function imageSingleValue(key: string, niceName: string, dataType?: ColumnDataType) {
+    return {
+        name: niceName,
+        query: `SELECT ${key} AS \`${niceName}\` FROM image_models
+    WHERE model_id = ?`,
+        columnExplicitlySetDataTypes: dataType ? { [niceName]: dataType } : {},
+    };
+}
+
+export const defaultImageQueries = [
+    imageSingleValue("brand", "Brand"),
+    imageSingleValue("company_country_code", "Company Country Code", "country"),
+    {
+        name: "Resolutions",
+        query: `SELECT GROUP_CONCAT(resolution, ', ') AS \`Resolutions\`
+    FROM image_models_resolutions
+    WHERE model_id = ?`,
+        columnExplicitlySetDataTypes: {},
+    },
+    {
+        name: "Price (1024x1024)",
+        query: `SELECT price_per_image AS \`Price (1024x1024)\`
+    FROM image_models_vendors_pricing
+    WHERE model_id = ? AND resolution = '1024x1024'
+    LIMIT 1`,
+        columnExplicitlySetDataTypes: { "Price (1024x1024)": "currency" as ColumnDataType },
+    },
+    imageSingleValue("supports_negative_prompts", "Negative Prompts", "boolean"),
+];

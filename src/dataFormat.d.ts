@@ -3,6 +3,32 @@ type OutputTokenCost = number;
 type CachedInputTokenCost = number;
 type CachedOutputTokenCost = number;
 
+// Image generation types
+type ImageResolution = "256x256" | "512x512" | "1024x1024" | "1024x1792" | "1792x1024" | "2048x2048";
+
+type ImagePricingTier = {
+    resolution: ImageResolution;
+    pricePerImage: number;
+    generationSpeedMs?: number;
+};
+
+type ImageVendorModelInfo = {
+    vendorRef: string;
+    regionPricing: { [regionCode: string]: ImagePricingTier[] };
+    latencyMs: number;
+    lowCapacity: boolean;
+};
+
+type ImageModel = {
+    cleanName: string;
+    brand: string;
+    companyCountryCode: string;
+    vendors: ImageVendorModelInfo[];
+    selfhostable: boolean;
+    supportedResolutions: ImageResolution[];
+    supportsNegativePrompts: boolean;
+};
+
 type VendorModelInfo = {
     vendorRef: string;
     regionPricing: {
@@ -57,4 +83,5 @@ type VendorInfo = {
 export type DataFormat = {
     vendors: Record<string, VendorInfo>;
     models: Record<string, Model>;
+    imageModels: Record<string, ImageModel>;
 };

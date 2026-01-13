@@ -1,19 +1,29 @@
 import React from "react";
 import type { ColumnQuery } from "./components/Table";
-import { defaultQueries } from "./constants";
+import { defaultQueries, defaultImageQueries } from "./constants";
+
+type ModelViewType = "llm" | "image";
 
 type State = {
     currency: string;
     nameFilter: string;
     currentSorting: [number, string, boolean] | null;
     queries: ColumnQuery[];
+    modelView: ModelViewType;
+    imageQueries: ColumnQuery[];
 };
 
 const initialState: State = {
     currency: "USD",
     nameFilter: "",
     currentSorting: null,
-    queries:  defaultQueries.map(({ name, ...dq }) => ({
+    queries: defaultQueries.map(({ name, ...dq }) => ({
+        ...dq,
+        columnOrdering: {},
+        columnFilters: {},
+    })),
+    modelView: "llm",
+    imageQueries: defaultImageQueries.map(({ name, ...dq }) => ({
         ...dq,
         columnOrdering: {},
         columnFilters: {},
@@ -30,6 +40,8 @@ try {
         currentState.queries = parsedState.queries || currentState.queries;
         currentState.currentSorting = parsedState.currentSorting || currentState.currentSorting;
         currentState.nameFilter = parsedState.nameFilter || currentState.nameFilter;
+        currentState.modelView = parsedState.modelView || currentState.modelView;
+        currentState.imageQueries = parsedState.imageQueries || currentState.imageQueries;
     }
 } catch {
     // Ignore errors
@@ -83,6 +95,8 @@ export function clearState() {
     currentState.queries = initialState.queries;
     currentState.currentSorting = null;
     currentState.nameFilter = "";
+    currentState.modelView = initialState.modelView;
+    currentState.imageQueries = initialState.imageQueries;
     window?.localStorage?.removeItem("appState");
     const oldListeners = listenerMap;
     clearTimeout(nextTimeout);

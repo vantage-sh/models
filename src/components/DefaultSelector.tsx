@@ -1,6 +1,7 @@
 import React from "react";
-import { defaultQueries } from "../constants";
+import { defaultQueries, defaultImageQueries } from "../constants";
 import type { ColumnQuery } from "./Table";
+import { useStateItem } from "../state";
 
 export default function DefaultSelector({
     queries,
@@ -9,15 +10,18 @@ export default function DefaultSelector({
     queries: ColumnQuery[];
     setQueries: (cb: (prev: ColumnQuery[]) => ColumnQuery[]) => void;
 }) {
+    const [modelView] = useStateItem("modelView");
+    const availableDefaults = modelView === "llm" ? defaultQueries : defaultImageQueries;
+
     const checkedQueries = React.useMemo(() => {
-        return defaultQueries.filter((dq) =>
+        return availableDefaults.filter((dq) =>
             queries.find((q) => q.query === dq.query),
         ).map((dq) => dq.name);
-    }, [queries]);
+    }, [queries, availableDefaults]);
 
     const handleChange = React.useCallback(
         (name: string) => {
-            const dq = defaultQueries.find((dq) => dq.name === name);
+            const dq = availableDefaults.find((dq) => dq.name === name);
             if (!dq) return;
             if (checkedQueries.includes(name)) {
                 // Unchecked
@@ -36,14 +40,14 @@ export default function DefaultSelector({
                 });
             }
         },
-        [checkedQueries],
+        [checkedQueries, availableDefaults],
     );
 
     return (
         <div className="p-4">
             <h2 className="text-lg font-medium mb-4">Select Default Columns</h2>
             <form>
-                {defaultQueries.map((dq) => (
+                {availableDefaults.map((dq) => (
                     <div key={dq.name} className="mb-2">
                         <label className="inline-flex items-center">
                             <input
