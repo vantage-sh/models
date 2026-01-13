@@ -294,7 +294,7 @@ function TableRow({
     loadedValues,
     setLoadedValues,
     queries,
-    modelView,
+    modelType,
 }: {
     id: string;
     name: string;
@@ -303,7 +303,7 @@ function TableRow({
     loadedValues: LoadedValues | null;
     setLoadedValues: (vals: LoadedValues | null) => void;
     queries: ColumnQuery[];
-    modelView: "llm" | "image";
+    modelType: "llm" | "image";
 }) {
     const [rowVisible, setRowVisible] = React.useState(true);
 
@@ -324,13 +324,13 @@ function TableRow({
         return () => {
             mounted[0] = false;
         };
-    }, [id, queriesKey, modelView]);
+    }, [id, queriesKey, modelType]);
 
     if (!rowVisible) {
         return null;
     }
 
-    const modelPath = modelView === "llm" ? "models" : "image-models";
+    const modelPath = modelType === "llm" ? "models" : "image-models";
     return (
         <tr className="border-t border-gray-300">
             <td className="relative">
@@ -346,6 +346,7 @@ function TableRow({
                     <RowLoadedValues
                         loadedValues={loadedValues}
                         queryColumns={queryColumns}
+                        modelType={modelType}
                     />
                 ) : (
                     new Array({ length: queries.length }).map((_, i) => (
@@ -425,22 +426,21 @@ function NameFilter({
 }
 
 export default function Table({
-    llmModels,
-    imageModels,
+    models,
     vendors,
+    modelType,
 }: {
-    llmModels: { id: string; name: string }[];
-    imageModels: { id: string; name: string }[];
+    models: { id: string; name: string }[];
     vendors: Record<string, VendorInfo>;
+    modelType: "llm" | "image";
 }) {
-    const [modelView] = useStateItem("modelView");
     const [llmQueries, setLlmQueries] = useStateItem("queries");
     const [imageQueries, setImageQueries] = useStateItem("imageQueries");
 
-    // Select appropriate data based on view
-    const idsAndNames = modelView === "llm" ? llmModels : imageModels;
-    const queries = modelView === "llm" ? llmQueries : imageQueries;
-    const setQueries = modelView === "llm" ? setLlmQueries : setImageQueries;
+    // Select appropriate data based on modelType prop
+    const idsAndNames = models;
+    const queries = modelType === "llm" ? llmQueries : imageQueries;
+    const setQueries = modelType === "llm" ? setLlmQueries : setImageQueries;
     const [nameFilter, setNameFilter] = useStateItem("nameFilter");
     const [queryColumns, setQueryColumns] = React.useState<(string[] | null)[]>(
         Array(queries.length).fill(null),
@@ -450,11 +450,11 @@ export default function Table({
     );
     const [currentSorting, setCurrentSorting] = useStateItem("currentSorting");
 
-    // Reset state when modelView changes
+    // Reset state when modelType changes
     React.useEffect(() => {
         setQueryColumns(Array(queries.length).fill(null));
         setLoadedValuesRows([new Map(idsAndNames.map(({ id }) => [id, null]))]);
-    }, [modelView]);
+    }, [modelType]);
     const sortedIdsAndNames = React.useMemo(() => {
         const v = sortIdsAndNames(idsAndNames, queries, queryColumns, loadedValuesRows[0], currentSorting);
         if (nameFilter === "") {
@@ -531,7 +531,7 @@ export default function Table({
                                 sortedIdsAndNames.map(({ id, name }) => (
                                     <TableRow
                                         id={id}
-                                        key={`${modelView}-${id}`}
+                                        key={`${modelType}-${id}`}
                                         name={name}
                                         queryColumns={queryColumns}
                                         setQueryColumns={setQueryColumns}
@@ -543,7 +543,7 @@ export default function Table({
                                             });
                                         }}
                                         queries={queries}
-                                        modelView={modelView}
+                                        modelType={modelType}
                                     />
                                 ))
                             }

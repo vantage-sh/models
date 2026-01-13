@@ -1,0 +1,24 @@
+---
+import data from "../../data";
+import MainLayout from "../../layouts/MainLayout.astro";
+import ImageModelPage from "../../components/model/ImageModelPage";
+
+export function getStaticPaths() {
+    return Object.keys(data.imageModels).map((modelId) => ({
+        params: { id: modelId },
+    }));
+}
+
+const { id } = Astro.params;
+const model = data.imageModels[id];
+const modelName = model?.cleanName ?? id;
+---
+
+<MainLayout titleExtra={modelName} description={`Pricing and details for ${modelName} by ${model?.brand}`}>
+    <ImageModelPage
+        modelId={id}
+        model={model}
+        vendors={data.vendors}
+        client:only="react"
+    />
+</MainLayout>

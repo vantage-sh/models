@@ -68,18 +68,19 @@ function renderColumn(
 export default function RowLoadedValues({
     loadedValues,
     queryColumns,
+    modelType,
 }: {
     loadedValues: (any[] | null | { error: string })[];
     queryColumns: (string[] | null)[];
+    modelType: "llm" | "image";
 }) {
-    const [modelView] = useStateItem("modelView");
     const [llmQueries, setLlmQueries] = useStateItem("queries");
     const [imageQueries, setImageQueries] = useStateItem("imageQueries");
     const [currency] = useStateItem("currency");
 
-    // Select appropriate queries based on view
-    const queries = modelView === "llm" ? llmQueries : imageQueries;
-    const setQueries = modelView === "llm" ? setLlmQueries : setImageQueries;
+    // Select appropriate queries based on modelType prop
+    const queries = modelType === "llm" ? llmQueries : imageQueries;
+    const setQueries = modelType === "llm" ? setLlmQueries : setImageQueries;
 
     const getColSpan = (index: number) => {
         const cols = queryColumns[index];
