@@ -1,5 +1,5 @@
 import React from "react";
-import type { ColumnQuery } from "./components/Table";
+import type { ColumnDataType, ColumnQuery } from "./components/Table";
 import { defaultQueries, defaultImageQueries } from "./constants";
 
 type ModelViewType = "llm" | "image";
@@ -13,15 +13,35 @@ type State = {
     imageQueries: ColumnQuery[];
 };
 
+const initialQueries = defaultQueries.map(({ name, ...dq }) => ({
+    ...dq,
+    columnOrdering: {},
+    columnFilters: {},
+}));
+
+initialQueries.push({
+    columnOrdering: {},
+    columnFilters: {},
+    columnExplicitlySetDataTypes: { "Average Cost per 1K Input Tokens": "currency" as ColumnDataType },
+    query: `SELECT AVG(input_token_cost * 1000) AS \`Average Cost per 1K Input Tokens\`
+    FROM models_vendors_regions
+    WHERE model_id = ?`,
+});
+
+initialQueries.push({
+    columnOrdering: {},
+    columnFilters: {},
+    columnExplicitlySetDataTypes: { "Average Cost per 1K Output Tokens": "currency" as ColumnDataType },
+    query: `SELECT AVG(output_token_cost * 1000) AS \`Average Cost per 1K Output Tokens\`
+    FROM models_vendors_regions
+    WHERE model_id = ?`,
+});
+
 const initialState: State = {
     currency: "USD",
     nameFilter: "",
     currentSorting: null,
-    queries: defaultQueries.map(({ name, ...dq }) => ({
-        ...dq,
-        columnOrdering: {},
-        columnFilters: {},
-    })),
+    queries: initialQueries,
     modelView: "llm",
     imageQueries: defaultImageQueries.map(({ name, ...dq }) => ({
         ...dq,
