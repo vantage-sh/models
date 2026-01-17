@@ -343,8 +343,10 @@ const TRANSFORMERS_TOKENISER_PATHS: Record<string, string> = {
     "qwen3-32": "Qwen/Qwen3-32B",
     qwen3: "Qwen/Qwen3-32B",
     "qwen-coder": "Qwen/Qwen2.5-Coder-32B-Instruct",
-    // Google Gemini (uses SentencePiece, available via transformers)
-    gemini: "google/gemma-2-9b-it",
+    // Google Gemma (open tokenizer, but gated - requires HF token)
+    "gemma-3": "google/gemma-3-1b-it",
+    "gemma-2": "google/gemma-2-9b-it",
+    gemma: "google/gemma-2-9b-it",
     // IBM Granite
     granite: "ibm-granite/granite-3.0-8b-instruct",
 };
@@ -376,7 +378,8 @@ export function getTokeniserForModel(modelId: string, provider: string): Tokenis
     }
 
     // Google Gemini - no public tokenizer available (proprietary)
-    if (provider === "Google") {
+    // Gemma models have public tokenizers, so let them fall through to the lookup
+    if (provider === "Google" && !modelId.startsWith("gemma")) {
         return undefined;
     }
 

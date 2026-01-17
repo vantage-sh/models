@@ -27,3 +27,5 @@ jobs:
             apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
             accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
             wranglerVersion: "4.59.1"
+        env:
+          HF_TOKEN: ${{ secrets.HF_TOKEN }}
