@@ -427,30 +427,26 @@ export default function Table({
     vendors: Record<string, VendorInfo>;
     modelType: "llm" | "image";
 }) {
-    const [llmQueries, setLlmQueries] = useStateItem("queries");
-    const [imageQueries, setImageQueries] = useStateItem("imageQueries");
+    const [queries, setQueries] = useStateItem("queries");
 
     // Select appropriate data based on modelType prop
-    const idsAndNames = models;
-    const queries = modelType === "llm" ? llmQueries : imageQueries;
-    const setQueries = modelType === "llm" ? setLlmQueries : setImageQueries;
     const [nameFilter, setNameFilter] = useStateItem("nameFilter");
     const [queryColumns, setQueryColumns] = React.useState<(string[] | null)[]>(
         Array(queries.length).fill(null)
     );
     const [loadedValuesRows, setLoadedValuesRows] = React.useState<[Map<string, LoadedValues>]>(
-        () => [new Map(idsAndNames.map(({ id }) => [id, null]))]
+        () => [new Map(models.map(({ id }) => [id, null]))]
     );
     const [currentSorting, setCurrentSorting] = useStateItem("currentSorting");
 
     // Reset state when modelType changes
     React.useEffect(() => {
         setQueryColumns(Array(queries.length).fill(null));
-        setLoadedValuesRows([new Map(idsAndNames.map(({ id }) => [id, null]))]);
+        setLoadedValuesRows([new Map(models.map(({ id }) => [id, null]))]);
     }, [modelType]);
     const sortedIdsAndNames = React.useMemo(() => {
         const v = sortIdsAndNames(
-            idsAndNames,
+            models,
             queries,
             queryColumns,
             loadedValuesRows[0],
@@ -460,7 +456,7 @@ export default function Table({
             return v;
         }
         return v.filter(({ name }) => name.toLowerCase().includes(nameFilter.toLowerCase()));
-    }, [idsAndNames, nameFilter, queries, queryColumns, loadedValuesRows, currentSorting]);
+    }, [models, nameFilter, queries, queryColumns, loadedValuesRows, currentSorting]);
 
     const portalRoot = ReactDOM.createPortal(
         <PortalRoot />,
@@ -521,7 +517,7 @@ export default function Table({
                                         }}
                                         queryColumns={queryColumns[i] || []}
                                         loadedValuesPtr={loadedValuesRows}
-                                        firstId={idsAndNames[0]?.id || ""}
+                                        firstId={models[0]?.id || ""}
                                     />
                                 ))}
                             </tr>
@@ -550,7 +546,7 @@ export default function Table({
                     <div className="ml-4 shrink-0 sticky top-0 self-start">
                         <AddButton
                             loadedValuesRows={loadedValuesRows[0]}
-                            firstId={idsAndNames[0]?.id || ""}
+                            firstId={models[0]?.id || ""}
                             vendors={vendors}
                             modelType={modelType}
                         />

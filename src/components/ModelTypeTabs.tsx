@@ -1,23 +1,32 @@
-import { useStateItem } from "../state";
+import { navigate } from "astro:transitions/client";
+import React from "react";
 
-type ModelViewType = "llm" | "image";
-
-const tabs: { id: ModelViewType; label: string }[] = [
-    { id: "llm", label: "LLM" },
-    { id: "image", label: "Image Gen" },
+const tabs: { path: string; label: string }[] = [
+    { path: "/", label: "LLM" },
+    { path: "/image-gen", label: "Image Gen" },
 ];
 
+function usePath() {
+    return React.useSyncExternalStore(
+        (onStoreChange) => {
+            window.addEventListener("popstate", onStoreChange);
+            return () => window.removeEventListener("popstate", onStoreChange);
+        },
+        () => window.location.pathname,
+    );
+}
+
 export default function ModelTypeTabs() {
-    const [modelView, setModelView] = useStateItem("modelView");
+    const path = usePath();
 
     return (
         <div className="flex gap-1 bg-[#5a38b8] rounded-md p-1">
-            {tabs.map((tab) => (
+            {tabs.map((tab: { path: string; label: string }) => (
                 <button
-                    key={tab.id}
-                    onClick={() => setModelView(tab.id)}
+                    key={tab.path}
+                    onClick={() => navigate(tab.path)}
                     className={`px-4 py-1.5 rounded text-sm font-medium transition-colors ${
-                        modelView === tab.id
+                        path === tab.path
                             ? "bg-white dark:bg-gray-800 text-[#6742d6] dark:text-purple-300"
                             : "text-white/80 hover:text-white hover:bg-[#7a52e6]"
                     }`}

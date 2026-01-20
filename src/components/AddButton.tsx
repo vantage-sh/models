@@ -145,12 +145,7 @@ export default function AddButton({
     vendors: Record<string, VendorInfo>;
     modelType: "llm" | "image";
 }) {
-    const [llmQueries, setLlmQueries] = useStateItem("queries");
-    const [imageQueries, setImageQueries] = useStateItem("imageQueries");
-
-    // Select appropriate queries based on modelType prop
-    const queries = modelType === "llm" ? llmQueries : imageQueries;
-    const setQueries = modelType === "llm" ? setLlmQueries : setImageQueries;
+    const [queries, setQueries] = useStateItem("queries");
     const [selectionMode, setSelectionMode] = React.useState(false);
     const externalClickHandler = React.useRef<() => void>(null);
 

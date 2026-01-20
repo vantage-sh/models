@@ -2,15 +2,11 @@ import React from "react";
 import type { ColumnDataType, ColumnQuery } from "./components/Table";
 import { defaultQueries, defaultImageQueries } from "./constants";
 
-type ModelViewType = "llm" | "image";
-
 type State = {
     currency: string;
     nameFilter: string;
     currentSorting: [number, string, boolean] | null;
     queries: ColumnQuery[];
-    modelView: ModelViewType;
-    imageQueries: ColumnQuery[];
 };
 
 const initialQueries = defaultQueries.map(({ name, ...dq }) => ({
@@ -41,31 +37,35 @@ initialQueries.push({
     WHERE model_id = ?`,
 });
 
-const initialState: State = {
+const initialLlmState: State = {
     currency: "USD",
     nameFilter: "",
     currentSorting: null,
     queries: initialQueries,
-    modelView: "llm",
-    imageQueries: defaultImageQueries.map(({ name, ...dq }) => ({
+};
+
+const currentLlmState: State = { ...initialLlmState };
+
+const initialImageState: State = {
+    currency: "USD",
+    nameFilter: "",
+    currentSorting: null,
+    queries: defaultImageQueries.map(({ name, ...dq }) => ({
         ...dq,
         columnOrdering: {},
         columnFilters: {},
     })),
 };
-
-const currentState: State = { ...initialState };
+const currentImageState: State = { ...initialImageState };
 
 try {
-    const savedState = window?.localStorage ? window.localStorage.getItem("appState") : null;
+    const savedState = window?.localStorage ? window.localStorage.getItem("appState_llms") : null;
     if (savedState) {
         const parsedState = JSON.parse(savedState);
-        currentState.currency = parsedState.currency || currentState.currency;
-        currentState.queries = parsedState.queries || currentState.queries;
-        currentState.currentSorting = parsedState.currentSorting || currentState.currentSorting;
-        currentState.nameFilter = parsedState.nameFilter || currentState.nameFilter;
-        currentState.modelView = parsedState.modelView || currentState.modelView;
-        currentState.imageQueries = parsedState.imageQueries || currentState.imageQueries;
+        currentLlmState.currency = parsedState.currency || currentLlmState.currency;
+        currentLlmState.queries = parsedState.queries || currentLlmState.queries;
+        currentLlmState.currentSorting = parsedState.currentSorting || currentLlmState.currentSorting;
+        currentLlmState.nameFilter = parsedState.nameFilter || currentLlmState.nameFilter;
     }
 } catch {
     // Ignore errors
@@ -97,29 +97,33 @@ async function writeToRemoteStorage(state: State) {
     // TODO: Implement remote storage saving
 }
 
-async function readFromRemoteStorage(): Promise<State | null> {
+async function readFromRemoteStorage(): Promise<{
+    t: "llm" | "image";
+    state: State;
+} | null> {
     // TODO: Implement remote storage reading
     return null;
 }
 
 readFromRemoteStorage().then((remoteState) => {
     if (remoteState) {
-        currentState.currency = remoteState.currency;
-        currentState.queries = remoteState.queries;
-        currentState.nameFilter = remoteState.nameFilter;
+        const o = remoteState.t === "llm" ? currentLlmState : currentImageState;
+        o.currency = remoteState.state.currency;
+        o.queries = remoteState.state.queries;
+        o.nameFilter = remoteState.state.nameFilter;
     }
 });
 
 let listenerMap: Map<string, (() => void)[]> = new Map();
 
 export function clearState() {
-    currentState.currency = initialState.currency;
-    currentState.queries = initialState.queries;
-    currentState.currentSorting = null;
-    currentState.nameFilter = "";
-    currentState.modelView = initialState.modelView;
-    currentState.imageQueries = initialState.imageQueries;
-    window?.localStorage?.removeItem("appState");
+    const isLlm = window.location.pathname === "/";
+    const o = isLlm ? currentLlmState : currentImageState;
+    o.currency = isLlm ? initialLlmState.currency : initialImageState.currency;
+    o.queries = isLlm ? initialLlmState.queries : initialImageState.queries;
+    o.currentSorting = null;
+    o.nameFilter = "";
+    window?.localStorage?.removeItem(`appState_${isLlm ? "llms" : "images"}`);
     const oldListeners = listenerMap;
     clearTimeout(nextTimeout);
     nextTimeout = null;
@@ -133,6 +137,9 @@ export function clearState() {
 export function useStateItem<Key extends keyof State>(
     key: Key
 ): [State[Key], (newValue: State[Key] | ((prevValue: State[Key]) => State[Key])) => void] {
+    const isLlm = window.location.pathname === "/";
+    const currentState = isLlm ? currentLlmState : currentImageState;
+
     const setter = React.useCallback(
         (newValue: State[Key] | ((prevValue: State[Key]) => State[Key])) => {
             if (typeof newValue === "function") {
