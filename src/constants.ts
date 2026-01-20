@@ -14,8 +14,7 @@ const llmVendors = {
     query: `SELECT GROUP_CONCAT(vendors.clean_name, ', ') AS \`Vendors\`
     FROM models_vendors
     JOIN vendors ON models_vendors.vendor_id = vendors.vendor_id
-    WHERE models_vendors.model_id = ?
-`,
+    WHERE models_vendors.model_id = ?`,
     columnExplicitlySetDataTypes: {},
 }
 
@@ -50,8 +49,7 @@ const imageVendors = {
     query: `SELECT GROUP_CONCAT(vendors.clean_name, ', ') AS \`Vendors\`
     FROM image_models_vendors
     JOIN vendors ON image_models_vendors.vendor_id = vendors.vendor_id
-    WHERE image_models_vendors.model_id = ?
-`,
+    WHERE image_models_vendors.model_id = ?`,
     columnExplicitlySetDataTypes: {},
 };
 
