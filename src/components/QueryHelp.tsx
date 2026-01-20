@@ -24,7 +24,7 @@ export default function QueryHelp({ showParameterHelp = true }: { showParameterH
                         <p className="text-xs text-gray-500 dark:text-gray-400">
                             Example:{" "}
                             <code className="bg-gray-200 dark:bg-gray-700 px-1 rounded">
-                                SELECT brand FROM models WHERE model_id = ?
+                                SELECT company FROM models WHERE model_id = ?
                             </code>
                         </p>
                     </section>
@@ -47,7 +47,7 @@ export default function QueryHelp({ showParameterHelp = true }: { showParameterH
                                     <code>clean_name</code>
                                 </span>
                                 <span>
-                                    <code>brand</code>
+                                    <code>company</code>
                                 </span>
                                 <span>
                                     <code>company_country_code</code>

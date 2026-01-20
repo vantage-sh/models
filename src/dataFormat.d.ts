@@ -27,7 +27,7 @@ type ImageVendorModelInfo = {
 
 type ImageModel = {
     cleanName: string;
-    brand: string;
+    company: string;
     companyCountryCode: string;
     vendors: ImageVendorModelInfo[];
     selfhostable: boolean;
@@ -71,7 +71,7 @@ type ReasoningTier = "none" | "basic" | "extended";
 
 type Model = {
     cleanName: string;
-    brand: string;
+    company: string;
     companyCountryCode: string;
     vendors: VendorModelInfo[];
     selfhostable: boolean;

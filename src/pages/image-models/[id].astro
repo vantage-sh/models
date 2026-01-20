@@ -14,7 +14,7 @@ const model = data.imageModels[id];
 const modelName = model?.cleanName ?? id;
 ---
 
-<MainLayout titleExtra={modelName} description={`Pricing and details for ${modelName} by ${model?.brand}`}>
+<MainLayout titleExtra={modelName} description={`Pricing and details for ${modelName} by ${model?.company}`}>
     <ImageModelPage
         modelId={id}
         model={model}

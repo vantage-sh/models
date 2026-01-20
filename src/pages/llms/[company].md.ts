@@ -2,9 +2,8 @@ import type { APIRoute, GetStaticPaths } from "astro";
 import type { Model } from "@/src/dataFormat";
 import {
     BASE_URL,
-    getLLMBrands,
-    getModelsByBrand,
-    unslugifyBrand,
+    getLLMCompanies,
+    getModelsByCompany,
     formatPrice,
     getVendorName,
     getRegionName,
@@ -13,15 +12,15 @@ import {
 export const prerender = true;
 
 export const getStaticPaths: GetStaticPaths = () => {
-    const brands = getLLMBrands();
-    return brands.map(({ brand, slug }) => ({
-        params: { brand: slug },
-        props: { brandName: brand },
+    const companies = getLLMCompanies();
+    return companies.map(({ company, slug }) => ({
+        params: { company: slug },
+        props: { companyName: company },
     }));
 };
 
 interface Props {
-    brandName: string;
+    companyName: string;
 }
 
 function formatReasoningTier(model: Model): string {
@@ -117,13 +116,13 @@ function generateModelMarkdown(modelId: string, model: Model): string {
 }
 
 export const GET: APIRoute = ({ props }) => {
-    const { brandName } = props as Props;
-    const models = getModelsByBrand(brandName);
+    const { companyName } = props as Props;
+    const models = getModelsByCompany(companyName);
 
     const lines: string[] = [
-        `# ${brandName} Language Models`,
+        `# ${companyName} Language Models`,
         "",
-        `> Pricing and specifications for ${brandName} language models.`,
+        `> Pricing and specifications for ${companyName} language models.`,
         "",
         `[← Back to Index](${BASE_URL}/llms.txt)`,
         "",

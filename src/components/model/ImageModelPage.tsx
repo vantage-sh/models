@@ -15,7 +15,7 @@ export default function ImageModelPage({ modelId, model, vendors }: ImageModelPa
             </div>
             <div className="mb-6">
                 <h1 className="text-3xl font-bold mb-2">{model.cleanName}</h1>
-                <p className="text-gray-600 dark:text-gray-400">by {model.brand}</p>
+                <p className="text-gray-600 dark:text-gray-400">by {model.company}</p>
             </div>
             <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-6 mb-6">
                 <h2 className="text-xl font-semibold mb-4">Model Details</h2>

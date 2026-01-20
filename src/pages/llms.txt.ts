@@ -1,15 +1,15 @@
 import type { APIRoute } from "astro";
 import {
     BASE_URL,
-    getLLMBrands,
-    getImageModelBrands,
+    getLLMCompanies,
+    getImageModelCompanies,
 } from "@/src/lib/llmsTxt";
 
 export const prerender = true;
 
 export const GET: APIRoute = () => {
-    const llmBrands = getLLMBrands();
-    const imageModelBrands = getImageModelBrands();
+    const llmCompanies = getLLMCompanies();
+    const imageModelCompanies = getImageModelCompanies();
 
     const lines: string[] = [
         "# AI Model Pricing & Comparison",
@@ -20,17 +20,17 @@ export const GET: APIRoute = () => {
         "",
     ];
 
-    for (const { brand, slug } of llmBrands) {
+    for (const { company, slug } of llmCompanies) {
         lines.push(
-            `- [${brand}](${BASE_URL}/llms/${slug}.md): ${brand} language models pricing and benchmarks`
+            `- [${company}](${BASE_URL}/llms/${slug}.md): ${company} language models pricing and benchmarks`
         );
     }
 
     lines.push("", "## Image Generation Models", "");
 
-    for (const { brand, slug } of imageModelBrands) {
+    for (const { company, slug } of imageModelCompanies) {
         lines.push(
-            `- [${brand}](${BASE_URL}/image-gen/${slug}.md): ${brand} image generation models pricing`
+            `- [${company}](${BASE_URL}/image-gen/${slug}.md): ${company} image generation models pricing`
         );
     }
 

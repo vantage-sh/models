@@ -92,7 +92,7 @@ export async function addModelToFormat(
 
         modelEntry = {
             cleanName: model.name,
-            brand: model.provider,
+            company: model.provider,
             companyCountryCode: providerToCountryCode(model.provider),
             vendors: [],
             reasoning,
@@ -179,7 +179,7 @@ export async function addImageModelToFormat(
     if (!modelEntry) {
         modelEntry = {
             cleanName: model.name,
-            brand: model.provider,
+            company: model.provider,
             companyCountryCode: imageProviderToCountryCode(model.provider),
             vendors: [],
             selfhostable: false,

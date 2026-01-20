@@ -66,7 +66,7 @@ async function processPriceDimension(
     if (!modelEntry) {
         modelEntry = {
             cleanName: attributes.model,
-            brand: attributes.provider,
+            company: attributes.provider,
             companyCountryCode: providerToCountryCode(attributes.provider),
             vendors: [],
             reasoning: isReasoningModel(slugifiedModel),

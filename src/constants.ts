@@ -10,7 +10,7 @@ function singleValue(key: string, niceName: string, dataType?: ColumnDataType) {
 }
 
 export const defaultQueries = [
-    singleValue("brand", "Brand"),
+    singleValue("company", "Company"),
     singleValue("company_country_code", "Company Country Code", "country"),
     singleValue("selfhostable", "Self-hostable", "boolean"),
     singleValue("reasoning", "Supports Reasoning", "boolean"),
@@ -35,7 +35,7 @@ function imageSingleValue(key: string, niceName: string, dataType?: ColumnDataTy
 }
 
 export const defaultImageQueries = [
-    imageSingleValue("brand", "Brand"),
+    imageSingleValue("company", "Company"),
     imageSingleValue("company_country_code", "Company Country Code", "country"),
     {
         name: "Resolutions",

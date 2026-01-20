@@ -18,7 +18,7 @@ CREATE INDEX idx_vendor_regions_vendor_id ON vendor_regions (vendor_id);
 CREATE TABLE models (
     model_id TEXT PRIMARY KEY,
     clean_name TEXT NOT NULL,
-    brand TEXT NOT NULL,
+    company TEXT NOT NULL,
     company_country_code TEXT NOT NULL,
     selfhostable BOOLEAN NOT NULL,
     reasoning BOOLEAN NOT NULL,
@@ -69,7 +69,7 @@ CREATE INDEX idx_models_vendors_regions_model_id ON models_vendors_regions (mode
 CREATE TABLE image_models (
     model_id TEXT PRIMARY KEY,
     clean_name TEXT NOT NULL,
-    brand TEXT NOT NULL,
+    company TEXT NOT NULL,
     company_country_code TEXT NOT NULL,
     selfhostable BOOLEAN NOT NULL,
     supports_negative_prompts BOOLEAN NOT NULL DEFAULT 0

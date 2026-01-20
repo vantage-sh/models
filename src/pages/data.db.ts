@@ -53,7 +53,7 @@ export const GET: APIRoute = () => {
 
         // Add the models
         const modelsPrep = db.prepare(
-            "INSERT INTO models (model_id, clean_name, brand, company_country_code, selfhostable, reasoning, reasoning_tier, max_input_tokens, max_output_tokens, training_cutoff, release_date, humanitys_last_exam_percentage, swe_bench_resolved_percentage, skatebench_score) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)"
+            "INSERT INTO models (model_id, clean_name, company, company_country_code, selfhostable, reasoning, reasoning_tier, max_input_tokens, max_output_tokens, training_cutoff, release_date, humanitys_last_exam_percentage, swe_bench_resolved_percentage, skatebench_score) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)"
         );
         const modelsTokenizersPrep = db.prepare(
             "INSERT INTO models_tokenizers (model_id, tokenizer, url) VALUES (?, ?, ?)"
@@ -68,7 +68,7 @@ export const GET: APIRoute = () => {
             modelsPrep.run([
                 modelId,
                 modelData.cleanName,
-                modelData.brand,
+                modelData.company,
                 modelData.companyCountryCode,
                 modelData.selfhostable ? 1 : 0,
                 modelData.reasoning ? 1 : 0,
@@ -127,7 +127,7 @@ export const GET: APIRoute = () => {
 
         // Add the image models
         const imageModelsPrep = db.prepare(
-            "INSERT INTO image_models (model_id, clean_name, brand, company_country_code, selfhostable, supports_negative_prompts) VALUES (?, ?, ?, ?, ?, ?)"
+            "INSERT INTO image_models (model_id, clean_name, company, company_country_code, selfhostable, supports_negative_prompts) VALUES (?, ?, ?, ?, ?, ?)"
         );
         const imageModelsResolutionsPrep = db.prepare(
             "INSERT INTO image_models_resolutions (model_id, resolution) VALUES (?, ?)"
@@ -142,7 +142,7 @@ export const GET: APIRoute = () => {
             imageModelsPrep.run([
                 modelId,
                 modelData.cleanName,
-                modelData.brand,
+                modelData.company,
                 modelData.companyCountryCode,
                 modelData.selfhostable ? 1 : 0,
                 modelData.supportsNegativePrompts ? 1 : 0,

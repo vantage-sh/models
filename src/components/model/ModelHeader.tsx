@@ -17,7 +17,7 @@ export default function ModelHeader({ model }: { model: Model }) {
                     {countryCodeToFlag(model.companyCountryCode)}
                 </span>
             </div>
-            <p className="text-lg text-gray-600 dark:text-gray-400 mt-1">by {model.brand}</p>
+            <p className="text-lg text-gray-600 dark:text-gray-400 mt-1">by {model.company}</p>
         </div>
     );
 }

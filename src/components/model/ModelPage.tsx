@@ -11,8 +11,8 @@ type ModelPageProps = {
     vendors: Record<string, VendorInfo>;
 };
 
-function isGemmaModel(modelId: string, brand: string): boolean {
-    return brand === "Google" && modelId.startsWith("gemma");
+function isGemmaModel(modelId: string, company: string): boolean {
+    return company === "Google" && modelId.startsWith("gemma");
 }
 
 function GemmaLegalNotice() {
@@ -53,7 +53,7 @@ function GemmaLegalNotice() {
 }
 
 export default function ModelPage({ modelId, model, vendors }: ModelPageProps) {
-    const showGemmaNotice = isGemmaModel(modelId, model.brand);
+    const showGemmaNotice = isGemmaModel(modelId, model.company);
 
     return (
         <div className="max-w-4xl mx-auto p-6">

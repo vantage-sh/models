@@ -7,67 +7,69 @@ export const BASE_URL =
     import.meta.env.PUBLIC_BASE_URL || "https://models.vantage.sh";
 
 /**
- * Convert brand name to URL-friendly slug
+ * Convert company name to URL-friendly slug
  * e.g., "Stability AI" -> "stability-ai"
  */
-export function slugifyBrand(brand: string): string {
-    return brand
+export function slugifyCompany(company: string): string {
+    return company
         .toLowerCase()
         .replace(/\s+/g, "-")
         .replace(/[^a-z0-9-]/g, "");
 }
 
 /**
- * Convert slug back to brand name by finding matching brand
+ * Convert slug back to company name by finding matching company
  */
-export function unslugifyBrand(
+export function unslugifyCompany(
     slug: string,
-    brands: string[]
+    companies: string[]
 ): string | undefined {
-    return brands.find((brand) => slugifyBrand(brand) === slug);
+    return companies.find((company) => slugifyCompany(company) === slug);
 }
 
 /**
- * Get unique LLM brands with their slugs
+ * Get unique LLM companies with their slugs
  */
-export function getLLMBrands(): { brand: string; slug: string }[] {
-    const brands = new Set<string>();
+export function getLLMCompanies(): { company: string; slug: string }[] {
+    const companies = new Set<string>();
     for (const model of Object.values(data.models)) {
-        brands.add(model.brand);
+        companies.add(model.company);
     }
-    return Array.from(brands)
+    return Array.from(companies)
         .sort()
-        .map((brand) => ({ brand, slug: slugifyBrand(brand) }));
+        .map((company) => ({ company, slug: slugifyCompany(company) }));
 }
 
 /**
- * Get unique image model brands with their slugs
+ * Get unique image model companies with their slugs
  */
-export function getImageModelBrands(): { brand: string; slug: string }[] {
-    const brands = new Set<string>();
+export function getImageModelCompanies(): { company: string; slug: string }[] {
+    const companies = new Set<string>();
     for (const model of Object.values(data.imageModels)) {
-        brands.add(model.brand);
+        companies.add(model.company);
     }
-    return Array.from(brands)
+    return Array.from(companies)
         .sort()
-        .map((brand) => ({ brand, slug: slugifyBrand(brand) }));
+        .map((company) => ({ company, slug: slugifyCompany(company) }));
 }
 
 /**
- * Get all LLM models for a specific brand
+ * Get all LLM models for a specific company
  */
-export function getModelsByBrand(brand: string): [string, Model][] {
+export function getModelsByCompany(company: string): [string, Model][] {
     return Object.entries(data.models).filter(
-        ([_, model]) => model.brand === brand
+        ([_, model]) => model.company === company
     );
 }
 
 /**
- * Get all image models for a specific brand
+ * Get all image models for a specific company
  */
-export function getImageModelsByBrand(brand: string): [string, ImageModel][] {
+export function getImageModelsByCompany(
+    company: string
+): [string, ImageModel][] {
     return Object.entries(data.imageModels).filter(
-        ([_, model]) => model.brand === brand
+        ([_, model]) => model.company === company
     );
 }
 
