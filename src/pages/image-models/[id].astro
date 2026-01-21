@@ -2,6 +2,7 @@
 import data from "../../data";
 import MainLayout from "../../layouts/MainLayout.astro";
 import ImageModelPage from "../../components/model/ImageModelPage";
+import { oxfordify } from "@/src/lib/utils";
 
 export function getStaticPaths() {
     return Object.keys(data.imageModels).map((modelId) => ({
@@ -12,9 +13,15 @@ export function getStaticPaths() {
 const { id } = Astro.params;
 const model = data.imageModels[id];
 const modelName = model?.cleanName ?? id;
+
+const vendors = oxfordify(
+    model.vendors.map((vendor) => data.vendors[vendor.vendorRef].cleanName),
+);
+
+const description = `${modelName} is an image generation model created by ${model.company}. It is served by ${vendors}.`;
 ---
 
-<MainLayout titleExtra={modelName} description={`Pricing and details for ${modelName} by ${model?.company}`}>
+<MainLayout titleExtra={`${modelName} Pricing and Information`} description={description}>
     <ImageModelPage
         model={model}
         vendors={data.vendors}
