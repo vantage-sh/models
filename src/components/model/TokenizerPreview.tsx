@@ -72,12 +72,7 @@ export default function TokenizerPreview({ tokenizer, modelName }: TokenizerPrev
 
     return (
         <div className="mb-8 p-4 border dark:border-gray-700 rounded-lg bg-white dark:bg-gray-800">
-            <h2 className="text-xl font-semibold mb-4">Tokenizer Preview</h2>
-            <p className="text-sm text-gray-500 dark:text-gray-400 mb-3">
-                Using {tokenizer.type === "tiktoken" && "tiktoken"}
-                {tokenizer.type === "transformers" && "HuggingFace Transformers"}
-                {tokenizer.type === "site-api" && "API"} tokenizer
-            </p>
+            <h2 className="text-xl font-semibold mb-4">{modelName} Tokenizer</h2>
             <textarea
                 value={text}
                 onChange={(e) => setText(e.target.value)}
