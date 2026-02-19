@@ -3,7 +3,7 @@ import Column from "./Column";
 import { useStateItem } from "../state";
 import forexData from "../forex.json";
 
-export const DEFAULT_COLUMN_WIDTH = 150;
+export const DEFAULT_COLUMN_WIDTH = 200;
 
 const ZERO_ENDING_REGEX = /0+$/g;
 const DOT_ENDING_REGEX = /\.$/g;
