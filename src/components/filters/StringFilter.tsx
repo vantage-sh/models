@@ -28,8 +28,9 @@ export default function StringFilter({
                 setFilterValue(val);
                 updateQuery(false);
             }}
-            className="w-full border text-sm border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 rounded-md p-1"
+            className="w-full border text-sm border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 rounded-md p-1 placeholder:text-gray-500 dark:placeholder:text-gray-400 placeholder:font-light"
             aria-label={`Filter ${columnName}`}
+            placeholder={`Filter by ${columnName}...`}
         />
     );
 }
