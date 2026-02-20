@@ -419,7 +419,7 @@ function NameFilter({
                 value={nameFilter}
                 aria-label="Name Filter"
                 onChange={(e) => setNameFilter(e.target.value)}
-                className="w-full border text-sm border-gray-300 dark:border-gray-600 dark:bg-gray-800 rounded-md p-1 mt-auto"
+                className="w-full border text-sm border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 rounded-md p-1 mt-auto"
             />
         </div>
     );

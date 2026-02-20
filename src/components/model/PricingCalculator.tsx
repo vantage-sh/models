@@ -146,7 +146,7 @@ export default function PricingCalculator({ model, vendors }: PricingCalculatorP
                         type="number"
                         value={inputTokens}
                         onChange={(e) => setInputTokens(Number(e.target.value))}
-                        className="w-full p-2 border dark:border-gray-600 dark:bg-gray-700 rounded-md"
+                        className="w-full p-2 border dark:border-gray-600 bg-white dark:bg-gray-700 rounded-md"
                         min={0}
                     />
                 </div>
@@ -156,7 +156,7 @@ export default function PricingCalculator({ model, vendors }: PricingCalculatorP
                         type="number"
                         value={outputTokens}
                         onChange={(e) => setOutputTokens(Number(e.target.value))}
-                        className="w-full p-2 border dark:border-gray-600 dark:bg-gray-700 rounded-md"
+                        className="w-full p-2 border dark:border-gray-600 bg-white dark:bg-gray-700 rounded-md"
                         min={0}
                     />
                 </div>
@@ -169,7 +169,7 @@ export default function PricingCalculator({ model, vendors }: PricingCalculatorP
                             type="number"
                             value={cachedInputTokens}
                             onChange={(e) => setCachedInputTokens(Number(e.target.value))}
-                            className="w-full p-2 border dark:border-gray-600 dark:bg-gray-700 rounded-md"
+                            className="w-full p-2 border dark:border-gray-600 bg-white dark:bg-gray-700 rounded-md"
                             min={0}
                         />
                     </div>

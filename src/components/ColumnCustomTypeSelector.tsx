@@ -125,7 +125,7 @@ export default function ColumnCustomTypeSelector({
                             }
                         }}
                         placeholder="Give it a name"
-                        className="flex-1 px-2 py-1 text-sm border dark:border-gray-600 dark:bg-gray-800 rounded"
+                        className="flex-1 px-2 py-1 text-sm border dark:border-gray-600 bg-white dark:bg-gray-800 rounded"
                         autoFocus
                     />
                     <select
