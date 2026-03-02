@@ -47,6 +47,7 @@ const MODEL_REASONING_PREFIXES = {
     mixtral: true,
     pixtral: true,
     voxtral: false,
+    devstral: false,
     // DeepSeek
     "deepseek-r1": true,
     "deepseek-reasoner": true,
