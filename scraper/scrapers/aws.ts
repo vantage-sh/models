@@ -36,6 +36,7 @@ const PROVIDERS = {
     Qwen: "CN",
     DeepSeek: "CN",
     Mistral: "FR",
+    "Mistral AI": "FR",
     Google: "US",
     "Kimi AI": "CN",
     Nvidia: "US",
