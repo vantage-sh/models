@@ -565,7 +565,7 @@ export async function addBenchmarkDataForModel(modelId: string): Promise<{
         entry.model_id.toLowerCase().startsWith(modelId.toLowerCase())
     );
     if (hleEntry) {
-        result.humanitysLastExamPercentage = hleEntry.score * 100;
+        result.humanitysLastExamPercentage = hleEntry.benchmark_score * 100;
     }
 
     return result;
