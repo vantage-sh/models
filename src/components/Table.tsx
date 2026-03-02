@@ -86,7 +86,10 @@ function TableHeader({
     loadedValuesPtr: [Map<string, LoadedValues>];
     firstId: string;
 }) {
-    const [currentSorting, setCurrentSorting] = useStateItem("currentSorting", window?.location.pathname ?? "/");
+    const [currentSorting, setCurrentSorting] = useStateItem(
+        "currentSorting",
+        window?.location.pathname ?? "/"
+    );
 
     const setSorting = React.useCallback(
         (columnName: string, cb: (value: boolean | null) => boolean | null) => {
@@ -331,7 +334,9 @@ function TableRow({
         <tr className="border-t border-gray-300 dark:border-gray-600">
             <td className="relative">
                 <div className="px-2 font-roboto-mono">
-                    <Link href={`${import.meta.env.PUBLIC_BASE_URL ?? ""}/${modelPath}/${id}`}>{name}</Link>
+                    <Link href={`${import.meta.env.PUBLIC_BASE_URL ?? ""}/${modelPath}/${id}`}>
+                        {name}
+                    </Link>
                 </div>
                 <div className="absolute top-0 right-0 w-1 h-full bg-gray-200 dark:bg-gray-700 hover:opacity-50 transition-all duration-150" />
             </td>
@@ -411,7 +416,10 @@ function NameFilter({
 }) {
     return (
         <div className="px-2 flex flex-col h-full">
-            <div id="name-filter-header" className="grow flex items-center w-full justify-center font-inter-header">
+            <div
+                id="name-filter-header"
+                className="grow flex items-center w-full justify-center font-inter-header"
+            >
                 <p>Name</p>
             </div>
             <input
@@ -439,11 +447,15 @@ function Toolbar({
         <div className="flex items-end justify-between px-4 py-2 border-b border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 shrink-0 gap-4">
             <div className="flex items-end gap-6">
                 <div>
-                    <span className="text-xs text-gray-500 dark:text-gray-400 block mb-1">Output</span>
+                    <span className="text-xs text-gray-500 dark:text-gray-400 block mb-1">
+                        Output
+                    </span>
                     <ModelTypeTabs />
                 </div>
                 <div>
-                    <span className="text-xs text-gray-500 dark:text-gray-400 block mb-1">Currency</span>
+                    <span className="text-xs text-gray-500 dark:text-gray-400 block mb-1">
+                        Currency
+                    </span>
                     <CurrencyPicker modelType={modelType} />
                 </div>
                 <button
@@ -569,7 +581,9 @@ export default function Table({
                                                     (_, idx) => idx !== i
                                                 );
                                                 setQueries(newQueries);
-                                                setQueryColumns((x) => x.filter((_, idx) => idx !== i));
+                                                setQueryColumns((x) =>
+                                                    x.filter((_, idx) => idx !== i)
+                                                );
                                             }}
                                             queryColumns={queryColumns[i] || []}
                                             loadedValuesPtr={loadedValuesRows}

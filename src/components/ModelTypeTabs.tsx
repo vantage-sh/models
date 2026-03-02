@@ -30,7 +30,8 @@ export default function ModelTypeTabs() {
                     key={tab.path}
                     onClick={() => navigate(`${import.meta.env.PUBLIC_BASE_URL ?? ""}${tab.path}`)}
                     className={`px-4 py-1.5 rounded text-sm font-medium transition-colors ${
-                        removeTrailingSlash(path) === removeTrailingSlash(`${import.meta.env.PUBLIC_BASE_URL ?? ""}${tab.path}`)
+                        removeTrailingSlash(path) ===
+                        removeTrailingSlash(`${import.meta.env.PUBLIC_BASE_URL ?? ""}${tab.path}`)
                             ? "bg-white dark:bg-gray-800 text-[#6742d6] dark:text-purple-300"
                             : "text-white/80 hover:text-white hover:bg-[#7a52e6]"
                     }`}

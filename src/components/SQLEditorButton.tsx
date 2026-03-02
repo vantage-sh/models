@@ -84,7 +84,10 @@ export default function SQLEditorButton({ query, firstId, updateQuery }: SQLEdit
                     <div className="bg-white dark:bg-gray-800 p-5 block w-full h-full">
                         <header className="flex gap-2 items-center mb-4">
                             <form method="dialog">
-                                <button type="submit" className="p-1 hover:bg-gray-100 dark:hover:bg-gray-700 rounded transition-colors">
+                                <button
+                                    type="submit"
+                                    className="p-1 hover:bg-gray-100 dark:hover:bg-gray-700 rounded transition-colors"
+                                >
                                     <XIcon className="w-5 h-5" />
                                 </button>
                             </form>
@@ -97,7 +100,11 @@ export default function SQLEditorButton({ query, firstId, updateQuery }: SQLEdit
                             </p>
                             {output && <output className="block mb-3">{output}</output>}
                             <label className="block text-sm font-medium mb-1.5">Query</label>
-                            <React.Suspense fallback={<div className="h-32 bg-gray-100 dark:bg-gray-800 rounded animate-pulse" />}>
+                            <React.Suspense
+                                fallback={
+                                    <div className="h-32 bg-gray-100 dark:bg-gray-800 rounded animate-pulse" />
+                                }
+                            >
                                 <CodeMirror
                                     value={valueRef.current}
                                     maxHeight="300px"

@@ -147,7 +147,7 @@ export function clearState() {
 
 export function useStateItem<Key extends keyof State>(
     key: Key,
-    path: string,
+    path: string
 ): [State[Key], (newValue: State[Key] | ((prevValue: State[Key]) => State[Key])) => void] {
     const isLlm = path === "/";
     const currentState = isLlm ? currentLlmState : currentImageState;
@@ -192,7 +192,7 @@ export function useStateItem<Key extends keyof State>(
             };
         },
         () => currentState[key],
-        () => initialState[key],
+        () => initialState[key]
     );
 
     return [getter, setter];

@@ -22,7 +22,10 @@ export default function AddButton({
     vendors: Record<string, VendorInfo>;
     modelType: "llm" | "image";
 }) {
-    const [queries, setQueries] = useStateItem("queries", modelType === "llm" ? "/" : "/image-models");
+    const [queries, setQueries] = useStateItem(
+        "queries",
+        modelType === "llm" ? "/" : "/image-models"
+    );
     const [activeTab, setActiveTab] = React.useState<"default" | "vendor">("default");
     const modalRef = React.useRef<HTMLDialogElement>(null);
 

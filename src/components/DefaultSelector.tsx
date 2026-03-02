@@ -37,16 +37,14 @@ export default function DefaultSelector({
                     const defaultIdx = availableDefaults.findIndex((d) => d.name === name);
                     let insertIdx = 0;
                     for (let i = 0; i < filter.length; i++) {
-                        const existingIdx = availableDefaults.findIndex((d) => d.query === filter[i].query);
+                        const existingIdx = availableDefaults.findIndex(
+                            (d) => d.query === filter[i].query
+                        );
                         if (existingIdx !== -1 && existingIdx < defaultIdx) {
                             insertIdx = i + 1;
                         }
                     }
-                    return [
-                        ...filter.slice(0, insertIdx),
-                        newQuery,
-                        ...filter.slice(insertIdx),
-                    ];
+                    return [...filter.slice(0, insertIdx), newQuery, ...filter.slice(insertIdx)];
                 });
             }
         },

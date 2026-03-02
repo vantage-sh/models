@@ -59,7 +59,9 @@ export default function ModelPage({ modelId, model, vendors, description }: Mode
     return (
         <div className="max-w-4xl mx-auto p-6">
             <div className="mb-4">
-                <Link href={`${import.meta.env.PUBLIC_BASE_URL ?? ""}/`}>&larr; Back to all models</Link>
+                <Link href={`${import.meta.env.PUBLIC_BASE_URL ?? ""}/`}>
+                    &larr; Back to all models
+                </Link>
             </div>
             <ModelHeader model={model} description={description} />
             <ModelMetadata model={model} />
