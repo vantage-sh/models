@@ -122,7 +122,8 @@ export default function SQLEditorButton({ query, firstId, updateQuery }: SQLEdit
                     </div>
                 </div>
             </dialog>
-            <button
+            {/* FIXME: THIS IS A BODGE - IN THE FUTURE HANDLE EDITS PROPERLY HERE! */}
+            {/* <button
                 className="px-2 py-1 text-xs rounded hover:bg-gray-100 dark:hover:bg-gray-700 transition"
                 title="Edit SQL Query"
                 onClick={() => {
@@ -130,7 +131,7 @@ export default function SQLEditorButton({ query, firstId, updateQuery }: SQLEdit
                 }}
             >
                 <PencilIcon size={16} />
-            </button>
+            </button> */}
         </>
     );
 }
