@@ -1,4 +1,4 @@
-# models.vantage.sh
+# vantage.sh/models
 
 [![uses cloudflare](https://img.shields.io/badge/uses-Cloudflare-orange)](https://cloudflare.com)
 [![Built with Astro](https://img.shields.io/badge/Built%20with-Astro-ff5d01.svg)](https://astro.build/)
@@ -7,7 +7,7 @@
 
 > Comparing AI model pricing and benchmarks across cloud vendors shouldn't require dozens of browser tabs.
 
-Models.vantage.sh displays AI model pricing, benchmarks, and metadata from various cloud vendors in a single, queryable interface. Built with Astro, React, and Tailwind CSS, it features a client-side SQL engine (sql.js) for querying model data.
+vantage.sh/models displays AI model pricing, benchmarks, and metadata from various cloud vendors in a single, queryable interface. Built with Astro, React, and Tailwind CSS, it features a client-side SQL engine (sql.js) for querying model data.
 
 ## Project status
 
@@ -104,10 +104,7 @@ Use `@/src/*` to import from the `src/` directory (configured in tsconfig.json).
 
 ## API Access
 
-The data backing models.vantage.sh is available via a free API.
-
-- To get started, create a [free API key](https://docs.vantage.sh/api/authentication).
-- Review the API endpoints in the [API documentation](https://docs.vantage.sh/api/prices/get-all-products).
+The data backing vantage.sh/models is available via `/models/data.db`.
 
 ## Keep up-to-date
 

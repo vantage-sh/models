@@ -3,7 +3,7 @@ import dataJson from "../../public/data.json";
 
 const data = dataJson as unknown as DataFormat;
 
-export const BASE_URL = import.meta.env.PUBLIC_BASE_URL || "https://models.vantage.sh";
+export const BASE_URL = import.meta.env.PUBLIC_BASE_URL || "https://www.vantage.sh";
 
 /**
  * Convert company name to URL-friendly slug
