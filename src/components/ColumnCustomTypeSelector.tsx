@@ -49,7 +49,7 @@ export default function ColumnCustomTypeSelector({
     return (
         <div className="mt-4">
             <p className="text-xs text-gray-500 dark:text-gray-400 mb-2">
-                Define a custom column type in the query.
+                Define column binding information for the query. This is generally not needed, but can be used to override the default column type (such as currency or boolean).
             </p>
 
             {columnKeys.length > 0 && (
@@ -158,13 +158,13 @@ export default function ColumnCustomTypeSelector({
                 </div>
             ) : (
                 <button
-                    aria-label="Add Custom Column Type"
+                    aria-label="Add Column Binding Information"
                     type="button"
                     onClick={() => setIsAdding(true)}
                     className="flex items-center gap-1 text-sm text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300 mt-1"
                 >
                     <PlusIcon className="w-3.5 h-3.5" />
-                    Add Custom Column Type
+                    Add Column Binding Information
                 </button>
             )}
         </div>
