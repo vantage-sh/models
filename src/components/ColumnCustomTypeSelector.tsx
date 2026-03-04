@@ -13,7 +13,7 @@ export default function ColumnCustomTypeSelector({
 }: ColumnCustomTypeSelectorProps) {
     const [columnKeys, setColumnKeys] = React.useState(() => Object.keys(columnCustomTypes));
     const [newColName, setNewColName] = React.useState("");
-    const [newColType, setNewColType] = React.useState<ColumnDataType | "other">("other");
+    const [newColType, setNewColType] = React.useState<ColumnDataType>("boolean"));
     const [isAdding, setIsAdding] = React.useState(false);
 
     React.useEffect(() => {
@@ -23,12 +23,8 @@ export default function ColumnCustomTypeSelector({
     const handleTypeChange = React.useCallback(
         (e: React.ChangeEvent<HTMLSelectElement>) => {
             const { name } = e.target.dataset;
-            const newType = e.target.value as ColumnDataType | "other";
-            if (newType === "other") {
-                delete columnCustomTypes[name!];
-            } else {
-                columnCustomTypes[name!] = newType;
-            }
+            const newType = e.target.value as ColumnDataType;
+            columnCustomTypes[name!] = newType;
         },
         [columnCustomTypes]
     );
@@ -36,12 +32,10 @@ export default function ColumnCustomTypeSelector({
     const addColumn = React.useCallback(() => {
         const trimmed = newColName.trim();
         if (trimmed && !columnKeys.includes(trimmed)) {
-            if (newColType !== "other") {
-                columnCustomTypes[trimmed] = newColType;
-            }
+            columnCustomTypes[trimmed] = newColType;
             setColumnKeys((prev) => [...prev, trimmed]);
             setNewColName("");
-            setNewColType("other");
+            setNewColType("boolean");
             setIsAdding(false);
         }
     }, [newColName, newColType, columnKeys, columnCustomTypes]);
@@ -81,7 +75,6 @@ export default function ColumnCustomTypeSelector({
                                         onChange={handleTypeChange}
                                         className="border dark:border-gray-600 dark:bg-gray-800 px-1 py-0.5 text-sm rounded"
                                     >
-                                        <option value="other">SQL Native</option>
                                         <option value="boolean">Boolean</option>
                                         <option value="currency">Currency</option>
                                     </select>
@@ -121,7 +114,7 @@ export default function ColumnCustomTypeSelector({
                             if (e.key === "Escape") {
                                 setIsAdding(false);
                                 setNewColName("");
-                                setNewColType("other");
+                                setNewColType("boolean");
                             }
                         }}
                         placeholder="Give it a name"
@@ -131,9 +124,8 @@ export default function ColumnCustomTypeSelector({
                     <select
                         className="border dark:border-gray-600 dark:bg-gray-800 px-1 py-1 text-sm rounded"
                         value={newColType}
-                        onChange={(e) => setNewColType(e.target.value as ColumnDataType | "other")}
+                        onChange={(e) => setNewColType(e.target.value as ColumnDataType)}
                     >
-                        <option value="other">SQL Native</option>
                         <option value="boolean">Boolean</option>
                         <option value="currency">Currency</option>
                     </select>
@@ -149,7 +141,6 @@ export default function ColumnCustomTypeSelector({
                         onClick={() => {
                             setIsAdding(false);
                             setNewColName("");
-                            setNewColType("other");
                         }}
                         className="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 text-sm"
                     >
