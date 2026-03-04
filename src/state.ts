@@ -72,9 +72,11 @@ function setUrlId(id: string | null) {
     window.history.replaceState({}, "", url.toString());
 }
 
+const END_IS_IMAGE_PATH = /\/image-gen\/?$/;
+
 async function writeToRemoteStorage(state: State) {
     const u = new URL(window.location.href);
-    const type_ = true; // FIXME: THIS IS A BODGE - IN THE FUTURE HANDLE PATHS PROPERLY HERE!
+    const type_ = END_IS_IMAGE_PATH.test(u.pathname) ? "image" : "llm";
     const res = await fetch("https://modelskv.vantage-api.com/", {
         method: "POST",
         body: JSON.stringify({
@@ -128,7 +130,8 @@ if (typeof window !== "undefined") {
 let listenerMap: Map<string, (() => void)[]> = new Map();
 
 export function clearState() {
-    const isLlm = true; // FIXME: THIS IS A BODGE - IN THE FUTURE HANDLE PATHS PROPERLY HERE!
+    const u = new URL(window.location.href);
+    const isLlm = !END_IS_IMAGE_PATH.test(u.pathname);
     const o = isLlm ? currentLlmState : currentImageState;
     o.currency = JSON.parse(
         JSON.stringify(isLlm ? initialLlmState.currency : initialImageState.currency)
@@ -153,7 +156,7 @@ export function useStateItem<Key extends keyof State>(
     key: Key,
     path: string
 ): [State[Key], (newValue: State[Key] | ((prevValue: State[Key]) => State[Key])) => void] {
-    const isLlm = true; // FIXME: THIS IS A BODGE - IN THE FUTURE HANDLE PATHS PROPERLY HERE!
+    const isLlm = !END_IS_IMAGE_PATH.test(path);
     const currentState = isLlm ? currentLlmState : currentImageState;
     const initialState = isLlm ? initialLlmState : initialImageState;
 
