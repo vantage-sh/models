@@ -1,14 +1,15 @@
 import React from "react";
-import type { ColumnDataType, ColumnQuery } from "./Table";
+import type { ColumnDataType } from "./Table";
 import { XIcon } from "lucide-react";
 import ColumnCustomTypeSelector from "./ColumnCustomTypeSelector";
 import Button from "./Button";
 import { loadMultipleRows } from "../sqlEngine";
 import QueryHelp from "./QueryHelp";
+import type { ColumnQueryPartial } from "./SQLEditorButton";
 
 export type SQLModalProps = {
     exit: () => void;
-    setQueries: (cb: (prev: ColumnQuery[]) => ColumnQuery[]) => void;
+    setQueries: (cb: (prev: ColumnQueryPartial[]) => ColumnQueryPartial[]) => void;
     firstId: string;
 };
 

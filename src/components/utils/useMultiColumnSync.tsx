@@ -1,14 +1,18 @@
 import React, { type JSX } from "react";
 import type { ColumnDataType } from "../Table";
+import { loadSingleRow } from "@/src/sqlEngine";
 
 export type ColumnsHeaderProps = {
     useColumns: () => string[] | null;
     query: string;
+    queryIdx: number;
     columnSpecificDataTypes: Record<string, ColumnDataType>;
     updateQuery: (query: string, columnSpecificDataTypes: Record<string, ColumnDataType>) => void;
     initialFilter: [string, boolean] | null;  
     onFilterChange: (columnName: string, filter: any) => void;
     onSortChange: (v: [string, boolean] | null) => void;
+    isLlm: boolean;
+    firstId: string;
 };
 
 export type CustomTdProps = {
@@ -53,14 +57,42 @@ function CellGroup({
 }: CellGroupProps) {
     const columns = useColumns();
     const [result, setResult] = React.useState<any[] | string | null>(null);
+    const aliveRef = React.useRef(true);
 
     React.useEffect(() => {
-        // TODO: run the query
-        const result: any[] | string = [];
-        const newColumns: string[] = [];
-        updateContent(modelId, result, newColumns);
-        setResult(result);
-    }, [query, modelId, updateContent]);
+        aliveRef.current = true;
+        return () => {
+            aliveRef.current = false;
+        };
+    }, []);
+
+    React.useEffect(() => {
+        const load = async () => {
+            // Load from the database
+            try {
+                await loadSingleRow(query, modelId).then((row) => {
+                    if (!row) {
+                        if (aliveRef.current) {
+                            setResult(null);
+                            updateContent(modelId, [], []);
+                        }
+                        return;
+                    }
+                    const sortedColumns = Object.keys(row).sort();
+                    if (aliveRef.current) {
+                        setResult(sortedColumns.map((col) => row[col]));
+                        updateContent(modelId, sortedColumns.map((col) => row[col]), sortedColumns);
+                    }
+                });
+            } catch (e) {
+                if (aliveRef.current) {
+                    setResult(null);
+                    updateContent(modelId, [], []);
+                }
+            }
+        };
+        load();
+    }, [query, modelId]);
 
     const Td = customTdComponent ? customTdComponent : DefaultTd;
 
@@ -121,9 +153,10 @@ function createSqlSyncLayer(
     onFilterChange: (columnName: string, filter: any) => void,
     onModelIdShowOrHide: (modelId: string, show: boolean) => void,
     cellComponent: (props: CellProps) => any,
-    ColumnsHeader: (props: ColumnsHeaderProps) => JSX.Element,
+    ColumnsHeader: (props: ColumnsHeaderProps) => JSX.Element | JSX.Element[],
     customTdComponent: ((props: CustomTdProps) => JSX.Element) | null,
     isLlm: boolean,
+    firstId: string,
 ) {
     // Handle the columns. These are non-existent initially, but we have a sync layer to handle this.
     // These also must change if the query is changed.
@@ -310,22 +343,27 @@ function createSqlSyncLayer(
         <ColumnsHeader
             useColumns={columns.use}
             query={query}
+            queryIdx={queryIdx}
             columnSpecificDataTypes={columnSpecificDataTypes}
             updateQuery={updateQuery}
             initialFilter={orderForColumn}
             onFilterChange={setFilter}
             onSortChange={setSorting}
             key={queryIdx}
+            isLlm={isLlm}
+            firstId={firstId}
         />
     ), [
         columns.use,
         query,
+        queryIdx,
         columnSpecificDataTypes,
         updateQuery,
         orderForColumn,
         setFilter,
         setSorting,
         queryIdx,
+        isLlm,
     ]);
     const cellGroups = React.useMemo(() => {
         const mapping = new Map<string, JSX.Element>();
@@ -370,11 +408,12 @@ export function useMultiColumnSync(
     ) => void,
     modelIdsAndNames: { id: string; name: string }[],
     cellComponent: (props: CellProps) => any,
-    columnsHeaderComponent: (props: ColumnsHeaderProps) => JSX.Element,
+    columnsHeaderComponent: (props: ColumnsHeaderProps) => JSX.Element | JSX.Element[],
     customTdComponent: ((props: CustomTdProps) => JSX.Element) | null,
     nameFilter: string,
     NameComponent: (props: { name: string; modelId: string; isLlm: boolean }) => JSX.Element,
     isLlm: boolean,
+    firstId: string,
 ) {
     const [modelIdsAndNamesSorted, setModelIdsAndNamesSorted] = React.useState<{ id: string; name: string }[]>(modelIdsAndNames);
     const hidden = React.useMemo(() => new Map<string, number>(), []);
@@ -396,58 +435,57 @@ export function useMultiColumnSync(
         })));
     }, [modelIdsMapping, setModelIdsAndNamesSorted]);
 
-    const queryComponents = React.useMemo(() => {
-        return queries.map((query, idx) => {
-            const onSpecificQueryChange = React.useCallback((newQuery: string, newColumnSpecificDataTypes: Record<string, ColumnDataType>) => {
-                onQueryChange(newQuery, newColumnSpecificDataTypes, idx);
-            }, [onQueryChange, idx]);
+    const queryComponents = queries.map((query, idx) => {
+        const onSpecificQueryChange = (newQuery: string, newColumnSpecificDataTypes: Record<string, ColumnDataType>) => {
+            onQueryChange(newQuery, newColumnSpecificDataTypes, idx);
+        };
 
-            const setRecompute = React.useCallback((newModelIds: string[]) => {
-                if (currentSorting?.[0] === idx) {
-                    setModelIds(newModelIds);
-                }
-            }, [currentSorting, idx, setModelIds]);
+        const setRecompute = (newModelIds: string[]) => {
+            if (currentSorting?.[0] === idx) {
+                setModelIds(newModelIds);
+            }
+        };
 
-            const setSorting = React.useCallback((newSorting: [string, boolean] | null) => {
-                setCurrentSorting(newSorting === null ? null : [idx, newSorting]);
-            }, [idx, setCurrentSorting]);
+        const setSorting = (newSorting: [string, boolean] | null) => {
+            setCurrentSorting(newSorting === null ? null : [idx, newSorting]);
+        };
 
-            const setFilter = React.useCallback((columnName: string, filter: any) => {
-                onFilterChange(columnName, filter, idx);
-            }, [onFilterChange, idx]);
+        const setFilter = (columnName: string, filter: any) => {
+            onFilterChange(columnName, filter, idx);
+        };
 
-            const setHidden = React.useCallback((modelId: string, show: boolean) => {
-                const hiddenCount = hidden.get(modelId) || 0;
-                if (show) {
-                    hidden.set(modelId, hiddenCount - 1);
-                } else {
-                    hidden.set(modelId, hiddenCount + 1);
-                }
-                if (hiddenCount === 0) {
-                    hidden.delete(modelId);
-                }
-                setIncr((i) => i + 1);
-            }, [hidden, setIncr]);
+        const setHidden = (modelId: string, show: boolean) => {
+            const hiddenCount = hidden.get(modelId) || 0;
+            if (show) {
+                hidden.set(modelId, hiddenCount - 1);
+            } else {
+                hidden.set(modelId, hiddenCount + 1);
+            }
+            if (hiddenCount === 0) {
+                hidden.delete(modelId);
+            }
+            setIncr((i) => i + 1);
+        };
 
-            return createSqlSyncLayer(
-                query.query,
-                idx,
-                query.columnSpecificDataTypes,
-                onSpecificQueryChange,
-                currentSorting?.[0] === idx ? currentSorting[1] : null,
-                setRecompute,
-                setSorting,
-                modelIds,
-                query.filters,
-                setFilter,
-                setHidden,
-                cellComponent,
-                columnsHeaderComponent,
-                customTdComponent,
-                isLlm,
-            );
-        });
-    }, [queries, setModelIds, currentSorting, onQueryChange]);
+        return createSqlSyncLayer(
+            query.query,
+            idx,
+            query.columnSpecificDataTypes,
+            onSpecificQueryChange,
+            currentSorting?.[0] === idx ? currentSorting[1] : null,
+            setRecompute,
+            setSorting,
+            modelIds,
+            query.filters,
+            setFilter,
+            setHidden,
+            cellComponent,
+            columnsHeaderComponent,
+            customTdComponent,
+            isLlm,
+            firstId,
+        );
+    });
 
     // Combine everything nicely.
     const headersWithoutName = queryComponents.map((q) => q[0]);
@@ -461,8 +499,8 @@ export function useMultiColumnSync(
         const subCellGroups = queryComponents.map((q) => {
             const cellGroup = q[1].get(modelId);
             if (cellGroup === undefined) {
-                // This should never happen.
-                throw new Error(`Cell group not found for model ID ${modelId}`);
+                // Loading. This is a empty cell.
+                return <td></td>;
             }
             return cellGroup;
         });

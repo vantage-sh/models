@@ -1,5 +1,5 @@
 import React from "react";
-import type { ColumnDataType, ColumnQuery } from "./Table";
+import type { ColumnDataType } from "./Table";
 import { PencilIcon, XIcon } from "lucide-react";
 import { CodeMirror, testQuery } from "./SQLModal";
 import ColumnCustomTypeSelector from "./ColumnCustomTypeSelector";
@@ -8,10 +8,18 @@ import { loadSingleRow } from "../sqlEngine";
 import { detectColumnRename, migrateColumnConfigs } from "./utils/migrateColumnConfigs";
 import QueryHelp from "./QueryHelp";
 
+export type ColumnQueryPartial = {
+    query: string;
+    columnExplicitlySetDataTypes: Record<string, ColumnDataType>;
+};
+
 type SQLEditorButtonProps = {
-    query: ColumnQuery;
+    query: ColumnQueryPartial;
     firstId: string;
-    updateQuery: (rerunQuery: boolean) => void;
+    updateQuery: (
+        query: string,
+        columnExplicitlySetDataTypes: Record<string, ColumnDataType>,
+    ) => void;
 };
 
 export default function SQLEditorButton({ query, firstId, updateQuery }: SQLEditorButtonProps) {
@@ -66,10 +74,10 @@ export default function SQLEditorButton({ query, firstId, updateQuery }: SQLEdit
             query.columnExplicitlySetDataTypes = {
                 ...columnCustomTypes.current,
             };
-            updateQuery(true);
+            updateQuery(query.query, query.columnExplicitlySetDataTypes);
             exit();
         },
-        [columnCustomTypes, firstId, query, updateQuery]
+        [columnCustomTypes, firstId, query, updateQuery, exit]
     );
 
     return (
