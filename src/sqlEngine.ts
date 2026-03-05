@@ -49,7 +49,7 @@ function asyncIfWindow<T>(fn: () => Promise<T>): Promise<T> {
     return Promise.resolve(null as T);
 }
 
-const POOL_SIZE = navigator.hardwareConcurrency ?? 4;
+const POOL_SIZE = 4;
 
 const poolPromise = asyncIfWindow(async () => {
     const dataDb = await loadDataDb();
