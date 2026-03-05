@@ -195,8 +195,10 @@ export default function ColumnsHeader({
 
     if (!columns) {
         return (
-            <th className="pb-1 relative bg-[#F7F7F9] dark:bg-gray-900 align-bottom">
-                {end}
+            <th className="pb-1 relative bg-[#F7F7F9] dark:bg-gray-900 align-bottom" style={{ width: DEFAULT_COLUMN_WIDTH }}>
+                <div className="flex justify-end">
+                    {end}
+                </div>
                 <div className="absolute top-0 right-0 w-1 h-full bg-gray-200 dark:bg-gray-700 hover:opacity-50 transition-all duration-150" />
             </th>
         );
