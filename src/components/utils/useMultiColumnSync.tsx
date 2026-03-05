@@ -78,7 +78,7 @@ function CellGroup({
     React.useEffect(() => {
         const load = async () => {
             try {
-                await loadSingleRow(query, modelId).then((row) => {
+                await loadSingleRow(query, modelId, { cache: true }).then((row) => {
                     if (!row) {
                         if (aliveRef.current) {
                             setResult(null);

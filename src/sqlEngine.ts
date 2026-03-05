@@ -2,6 +2,34 @@ import type { Init, Payload, PayloadResult } from "./sql/worker";
 import { createSQLWorker } from "./components/utils/WorkerManager";
 import type { DataFormat } from "./dataFormat";
 
+const LS_CACHE_PREFIX = "sqlc:";
+
+function hashStr(s: string): string {
+    let h = 5381;
+    for (let i = 0; i < s.length; i++) {
+        h = (((h << 5) + h) ^ s.charCodeAt(i)) | 0;
+    }
+    return (h >>> 0).toString(36);
+}
+
+function lsGet(key: string): any {
+    try {
+        const raw = localStorage.getItem(key);
+        if (raw === null) return undefined;
+        return JSON.parse(raw);
+    } catch {
+        return undefined;
+    }
+}
+
+function lsSet(key: string, value: any): void {
+    try {
+        localStorage.setItem(key, JSON.stringify(value));
+    } catch {
+        // Storage full or unavailable — silently ignore
+    }
+}
+
 /** Gets the name/ID for LLM models. */
 export function getModelIdsAndNames(data: DataFormat): { id: string; name: string }[] {
     return Object.entries(data.models)
@@ -71,15 +99,29 @@ const poolPromise = asyncIfWindow(async () => {
 
 const queryCache = new Map<string, Map<string, { [column: string]: any }>>();
 
-/** Loads a single row. */
+/** Loads a single row. Pass `cache: true` to persist results in localStorage across page loads. */
 export async function loadSingleRow(
     query: string,
-    modelId: string
+    modelId: string,
+    options?: { cache?: boolean }
 ): Promise<{ [column: string]: any } | null> {
     let modelCache = queryCache.get(query);
     let modelCacheRes = modelCache?.get(modelId) as { [column: string]: any } | undefined | null;
     if (modelCacheRes) {
         return modelCacheRes;
+    }
+
+    if (options?.cache) {
+        const lsKey = LS_CACHE_PREFIX + hashStr(query) + ":" + modelId;
+        const cached = lsGet(lsKey);
+        if (cached !== undefined) {
+            if (!modelCache) {
+                modelCache = new Map<string, { [column: string]: any }>();
+                queryCache.set(query, modelCache);
+            }
+            modelCache.set(modelId, cached);
+            return cached;
+        }
     }
 
     const pool = await poolPromise;
@@ -97,6 +139,11 @@ export async function loadSingleRow(
             queryCache.set(query, modelCache);
         }
         modelCache.set(modelId, res);
+
+        if (options?.cache) {
+            const lsKey = LS_CACHE_PREFIX + hashStr(query) + ":" + modelId;
+            lsSet(lsKey, res);
+        }
     }
 
     return res;
