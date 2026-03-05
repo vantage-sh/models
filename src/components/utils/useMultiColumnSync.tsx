@@ -491,7 +491,7 @@ export function useMultiColumnSync(
     const headersWithoutName = queryComponents.map((q) => q[0]);
     const tableRows: JSX.Element[] = [];
     for (const modelId of modelIds) {
-        let display = hidden.has(modelId) ? "none" : "block";
+        let display = hidden.has(modelId) ? "none" : undefined;
         const name = modelIdsMapping.get(modelId)!;
         if (nameFilter !== "" && !name.toLowerCase().includes(nameFilter.toLowerCase())) {
             display = "none";
