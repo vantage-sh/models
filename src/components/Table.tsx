@@ -166,7 +166,7 @@ function Cell({
 }
 
 function ColumnsHeader({
-    useColumns,
+    columns,
     query,
     queryIdx,
     columnSpecificDataTypes,
@@ -177,7 +177,6 @@ function ColumnsHeader({
     isLlm,
     firstId,
 }: ColumnsHeaderProps) {
-    const columns = useColumns();
     const path = isLlm ? "/" : "/image-models"; // FIXME: This is a hack.
     const [queries, setQueries] = useStateItem("queries", path);
 
@@ -262,16 +261,8 @@ function CustomTd({
     const path = isLlm ? "/" : "/image-models"; // FIXME: This is a hack.
     const [queries, setQueries] = useStateItem("queries", path);
 
-    if (columnName === null) {
-        return (
-            <td>
-                {children}
-                <div className="absolute top-0 right-0 w-1 h-full cursor-col-resize bg-gray-200 dark:bg-gray-700 hover:opacity-50 transition-all duration-150" />
-            </td>
-        );
-    }
-
     const updateWidth = React.useCallback((newWidth: number) => {
+        if (columnName === null) return;
         setQueries((prev) => {
             const newQueries = [...prev];
             const item = newQueries[queryIdx];
@@ -281,7 +272,16 @@ function CustomTd({
             item.widths[columnName] = newWidth;
             return newQueries;
         });
-    }, [setQueries]);
+    }, [setQueries, columnName]);
+
+    if (columnName === null) {
+        return (
+            <td>
+                {children}
+                <div className="absolute top-0 right-0 w-1 h-full cursor-col-resize bg-gray-200 dark:bg-gray-700 hover:opacity-50 transition-all duration-150" />
+            </td>
+        );
+    }
 
     return (
         <Column
