@@ -168,7 +168,10 @@ export function useStateItem<Key extends keyof State>(
             } else {
                 currentState[key] = newValue;
             }
-            window?.localStorage?.setItem(`appState_${isLlm ? "llms" : "images"}`, JSON.stringify(currentState));
+            window?.localStorage?.setItem(
+                `appState_${isLlm ? "llms" : "images"}`,
+                JSON.stringify(currentState)
+            );
             doDebounce(() => {
                 writeToRemoteStorage(currentState);
             }, 500);

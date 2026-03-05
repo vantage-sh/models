@@ -16,7 +16,7 @@ type SQLEditorButtonProps = {
     firstId: string;
     updateQuery: (
         query: string,
-        columnExplicitlySetDataTypes: Record<string, ColumnDataType>,
+        columnExplicitlySetDataTypes: Record<string, ColumnDataType>
     ) => void;
 };
 

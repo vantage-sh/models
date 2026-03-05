@@ -30,7 +30,11 @@ export type CustomTdProps = {
 
 type CellGroupProps = {
     modelId: string;
-    updateContent: (modelId: string, newContent: any[] | string, newColumns: string[] | null) => void;
+    updateContent: (
+        modelId: string,
+        newContent: any[] | string,
+        newColumns: string[] | null
+    ) => void;
     query: string;
     queryIdx: number;
     columns: string[] | null;
@@ -85,7 +89,11 @@ function CellGroup({
                     const sortedColumns = Object.keys(row).sort();
                     if (aliveRef.current) {
                         setResult(sortedColumns.map((col) => row[col]));
-                        updateContent(modelId, sortedColumns.map((col) => row[col]), sortedColumns);
+                        updateContent(
+                            modelId,
+                            sortedColumns.map((col) => row[col]),
+                            sortedColumns
+                        );
                     }
                 });
             } catch (e) {
@@ -105,44 +113,57 @@ function CellGroup({
             const cells = [
                 <Td queryIdx={queryIdx} columnName={columns[0] || null} isLlm={isLlm}>
                     {result}
-                </Td>
-            ]
+                </Td>,
+            ];
             for (let i = 0; i < columns.length - 1; i++) {
                 cells.push(<Td queryIdx={queryIdx} columnName={columns[i + 1]} isLlm={isLlm}></Td>);
             }
             return cells;
         }
-        return <Td queryIdx={queryIdx} columnName={null} isLlm={isLlm}>{result}</Td>;
+        return (
+            <Td queryIdx={queryIdx} columnName={null} isLlm={isLlm}>
+                {result}
+            </Td>
+        );
     }
 
     if (!columns || !result) {
-        return <Td queryIdx={queryIdx} columnName={null} isLlm={isLlm}></Td>
+        return <Td queryIdx={queryIdx} columnName={null} isLlm={isLlm}></Td>;
     }
 
     return columns.map((column, index) => (
         <Td queryIdx={queryIdx} columnName={column} isLlm={isLlm} key={column}>
-            <Cell value={result[index]} columnSpecificDataType={columnSpecificDataTypes[column]} isLlm={isLlm} />
+            <Cell
+                value={result[index]}
+                columnSpecificDataType={columnSpecificDataTypes[column]}
+                isLlm={isLlm}
+            />
         </Td>
     ));
 }
 
 // Computes a comma-joined string of dominant types per column.
 // Only changes when the actual type mix changes — used as a stable useSyncExternalStore snapshot.
-function computeColumnTypeKey(content: Map<string, any[] | string>, columns: string[] | null): string {
+function computeColumnTypeKey(
+    content: Map<string, any[] | string>,
+    columns: string[] | null
+): string {
     if (!columns || columns.length === 0) return "";
-    return columns.map((_, colIdx) => {
-        const typeSet = new Set<string>();
-        for (const row of content.values()) {
-            if (!Array.isArray(row)) continue;
-            const val = row[colIdx];
-            if (val !== null && val !== undefined) {
-                typeSet.add(typeof val);
+    return columns
+        .map((_, colIdx) => {
+            const typeSet = new Set<string>();
+            for (const row of content.values()) {
+                if (!Array.isArray(row)) continue;
+                const val = row[colIdx];
+                if (val !== null && val !== undefined) {
+                    typeSet.add(typeof val);
+                }
             }
-        }
-        if (typeSet.size === 0) return "";
-        if (typeSet.size === 1) return typeSet.values().next().value!;
-        return "mixed";
-    }).join(",");
+            if (typeSet.size === 0) return "";
+            if (typeSet.size === 1) return typeSet.values().next().value!;
+            return "mixed";
+        })
+        .join(",");
 }
 
 // Pure function — no hooks. Safe to call in a loop.
@@ -157,14 +178,18 @@ function createSqlSyncLayer(
     onSortChange: (v: [string, boolean] | null) => void,
     modelIds: string[],
     onFilterChange: (columnName: string, filter: any) => void,
-    updateContent: (modelId: string, newContent: any[] | string, newColumns: string[] | null) => void,
+    updateContent: (
+        modelId: string,
+        newContent: any[] | string,
+        newColumns: string[] | null
+    ) => void,
     content: Map<string, any[] | string>,
     useColumnTypes: () => string,
     cellComponent: (props: CellProps) => any,
     ColumnsHeader: (props: ColumnsHeaderProps) => JSX.Element | JSX.Element[],
     customTdComponent: ((props: CustomTdProps) => JSX.Element) | null,
     isLlm: boolean,
-    firstId: string,
+    firstId: string
 ) {
     // Sort model IDs based on loaded content.
     let modelIdsSorted: string[];
@@ -185,7 +210,7 @@ function createSqlSyncLayer(
                     (aValues as any[])[colIdx],
                     (bValues as any[])[colIdx],
                     ascending,
-                    columnSpecificDataTypes[sortCol],
+                    columnSpecificDataTypes[sortCol]
                 );
             });
         }
@@ -211,7 +236,8 @@ function createSqlSyncLayer(
 
     const cellGroups = new Map<string, JSX.Element>();
     for (const modelId of modelIdsSorted) {
-        cellGroups.set(modelId, (
+        cellGroups.set(
+            modelId,
             <CellGroup
                 modelId={modelId}
                 updateContent={updateContent}
@@ -224,7 +250,7 @@ function createSqlSyncLayer(
                 isLlm={isLlm}
                 key={`${queryIdx}-${modelId}`}
             />
-        ));
+        );
     }
 
     return [columnsHeader, cellGroups] as const;
@@ -239,13 +265,9 @@ export function useMultiColumnSync(
     onQueryChange: (
         query: string,
         columnSpecificDataTypes: Record<string, ColumnDataType>,
-        queryIdx: number,
+        queryIdx: number
     ) => void,
-    onFilterChange: (
-        columnName: string,
-        filter: any,
-        queryIdx: number,
-    ) => void,
+    onFilterChange: (columnName: string, filter: any, queryIdx: number) => void,
     modelIdsAndNames: { id: string; name: string }[],
     cellComponent: (props: CellProps) => any,
     columnsHeaderComponent: (props: ColumnsHeaderProps) => JSX.Element | JSX.Element[],
@@ -253,25 +275,26 @@ export function useMultiColumnSync(
     nameFilter: string,
     NameComponent: (props: { name: string; modelId: string; isLlm: boolean }) => JSX.Element,
     isLlm: boolean,
-    firstId: string,
+    firstId: string
 ) {
-    const [modelIdsAndNamesSorted, setModelIdsAndNamesSorted] = React.useState<{ id: string; name: string }[]>(modelIdsAndNames);
+    const [modelIdsAndNamesSorted, setModelIdsAndNamesSorted] =
+        React.useState<{ id: string; name: string }[]>(modelIdsAndNames);
     const hidden = React.useMemo(() => new Map<string, number>(), []);
-    const [currentSorting, setCurrentSorting] = React.useState<[number, [string, boolean]] | null>(null);
+    const [currentSorting, setCurrentSorting] = React.useState<[number, [string, boolean]] | null>(
+        null
+    );
     const [, setIncr] = React.useState(0);
 
     // Per-query columns — lifted out of createSqlSyncLayer so hook count is stable.
-    const [columnsPerQuery, setColumnsPerQuery] = React.useState<(string[] | null)[]>(
-        () => queries.map(() => null),
+    const [columnsPerQuery, setColumnsPerQuery] = React.useState<(string[] | null)[]>(() =>
+        queries.map(() => null)
     );
 
     // Per-query content/hidden stored in refs — mutations don't need to trigger renders directly.
     const contentPerQuery = React.useRef<Map<string, any[] | string>[]>(
-        queries.map(() => new Map()),
+        queries.map(() => new Map())
     );
-    const hiddenPerQuery = React.useRef<Set<string>[]>(
-        queries.map(() => new Set()),
-    );
+    const hiddenPerQuery = React.useRef<Set<string>[]>(queries.map(() => new Set()));
 
     // Per-query type-change subscription. Listeners are notified only when the dominant
     // value type per column changes — so ColumnsHeader only re-renders when it needs to
@@ -294,15 +317,16 @@ export function useMultiColumnSync(
                 typeSnapshotsRef.current[idx] = "";
             }
             const capturedIdx = idx;
-            typeHookFactoriesRef.current[capturedIdx] = () => React.useSyncExternalStore(
-                (ln) => {
-                    typeListenersRef.current[capturedIdx].add(ln);
-                    // Use ?. so that unsubscribing after the slot was trimmed doesn't crash.
-                    return () => typeListenersRef.current[capturedIdx]?.delete(ln);
-                },
-                () => typeSnapshotsRef.current[capturedIdx],
-                () => "",
-            );
+            typeHookFactoriesRef.current[capturedIdx] = () =>
+                React.useSyncExternalStore(
+                    (ln) => {
+                        typeListenersRef.current[capturedIdx].add(ln);
+                        // Use ?. so that unsubscribing after the slot was trimmed doesn't crash.
+                        return () => typeListenersRef.current[capturedIdx]?.delete(ln);
+                    },
+                    () => typeSnapshotsRef.current[capturedIdx],
+                    () => ""
+                );
         }
 
         if (contentPerQuery.current[idx] === undefined) {
@@ -332,12 +356,17 @@ export function useMultiColumnSync(
         return modelIdsAndNamesSorted.map(({ id }) => id);
     }, [modelIdsAndNamesSorted]);
 
-    const setModelIds = React.useCallback((newModelIds: string[]) => {
-        setModelIdsAndNamesSorted(newModelIds.map((id) => ({
-            id,
-            name: modelIdsMapping.get(id)!,
-        })));
-    }, [modelIdsMapping]);
+    const setModelIds = React.useCallback(
+        (newModelIds: string[]) => {
+            setModelIdsAndNamesSorted(
+                newModelIds.map((id) => ({
+                    id,
+                    name: modelIdsMapping.get(id)!,
+                }))
+            );
+        },
+        [modelIdsMapping]
+    );
 
     // Keep effectiveColumnsPerQuery length in sync with queries.
     const effectiveColumnsPerQuery = React.useMemo(() => {
@@ -373,7 +402,7 @@ export function useMultiColumnSync(
                 if (!Array.isArray(aValues)) return ascending ? 1 : -1;
                 if (!Array.isArray(bValues)) return ascending ? -1 : 1;
                 return sortValue(aValues[colIdx], bValues[colIdx], ascending, dataType);
-            }),
+            })
         );
     }, [currentSorting]);
 
@@ -388,7 +417,9 @@ export function useMultiColumnSync(
             for (const [modelId, rowContent] of content.entries()) {
                 if (!Array.isArray(rowContent)) continue;
                 const row: Record<string, any> = {};
-                cols.forEach((col, i) => { row[col] = (rowContent as any[])[i]; });
+                cols.forEach((col, i) => {
+                    row[col] = (rowContent as any[])[i];
+                });
                 const wasHidden = hiddenSet.has(modelId);
                 const isHidden = !checkFilters(row, query.filters, query.columnSpecificDataTypes);
                 if (wasHidden !== isHidden) {
@@ -405,7 +436,10 @@ export function useMultiColumnSync(
     }, [filtersKey]);
 
     const queryComponents = queries.map((query, idx) => {
-        const onSpecificQueryChange = (newQuery: string, newColumnSpecificDataTypes: Record<string, ColumnDataType>) => {
+        const onSpecificQueryChange = (
+            newQuery: string,
+            newColumnSpecificDataTypes: Record<string, ColumnDataType>
+        ) => {
             onQueryChange(newQuery, newColumnSpecificDataTypes, idx);
         };
 
@@ -425,19 +459,25 @@ export function useMultiColumnSync(
             setIncr((i) => i + 1);
         };
 
-        const updateContent = (modelId: string, newContent: any[] | string, newColumns: string[] | null) => {
+        const updateContent = (
+            modelId: string,
+            newContent: any[] | string,
+            newColumns: string[] | null
+        ) => {
             contentPerQuery.current[idx].set(modelId, newContent);
 
             if (newColumns !== null) {
                 const currentColumns = effectiveColumnsPerQuery[idx];
-                if (currentColumns === null || (
-                    newColumns.length >= currentColumns.length &&
-                    JSON.stringify(newColumns) !== JSON.stringify(currentColumns)
-                )) {
+                if (
+                    currentColumns === null ||
+                    (newColumns.length >= currentColumns.length &&
+                        JSON.stringify(newColumns) !== JSON.stringify(currentColumns))
+                ) {
                     setColumnsPerQuery((prev) => {
-                        const next = prev.length === queries.length
-                            ? [...prev]
-                            : queries.map((_, i) => prev[i] ?? null);
+                        const next =
+                            prev.length === queries.length
+                                ? [...prev]
+                                : queries.map((_, i) => prev[i] ?? null);
                         next[idx] = newColumns;
                         return next;
                     });
@@ -451,13 +491,15 @@ export function useMultiColumnSync(
                         const sortedIds = modelIds.slice().sort((a, b) => {
                             const aValues = contentPerQuery.current[idx].get(a);
                             const bValues = contentPerQuery.current[idx].get(b);
-                            if (aValues === undefined || typeof aValues === "string") return ascending ? 1 : -1;
-                            if (bValues === undefined || typeof bValues === "string") return ascending ? -1 : 1;
+                            if (aValues === undefined || typeof aValues === "string")
+                                return ascending ? 1 : -1;
+                            if (bValues === undefined || typeof bValues === "string")
+                                return ascending ? -1 : 1;
                             return sortValue(
                                 (aValues as any[])[colIdx],
                                 (bValues as any[])[colIdx],
                                 ascending,
-                                query.columnSpecificDataTypes[sortCol],
+                                query.columnSpecificDataTypes[sortCol]
                             );
                         });
                         setModelIds(sortedIds);
@@ -467,10 +509,16 @@ export function useMultiColumnSync(
                 // Update per-query visibility using real checkFilters.
                 if (Array.isArray(newContent)) {
                     const row: Record<string, any> = {};
-                    newColumns.forEach((col, i) => { row[col] = (newContent as any[])[i]; });
+                    newColumns.forEach((col, i) => {
+                        row[col] = (newContent as any[])[i];
+                    });
                     const hiddenSet = hiddenPerQuery.current[idx];
                     const wasHidden = hiddenSet.has(modelId);
-                    const isHidden = !checkFilters(row, query.filters, query.columnSpecificDataTypes);
+                    const isHidden = !checkFilters(
+                        row,
+                        query.filters,
+                        query.columnSpecificDataTypes
+                    );
                     if (wasHidden !== isHidden) {
                         if (isHidden) hiddenSet.add(modelId);
                         else hiddenSet.delete(modelId);
@@ -507,7 +555,7 @@ export function useMultiColumnSync(
             columnsHeaderComponent,
             customTdComponent,
             isLlm,
-            firstId,
+            firstId
         );
     });
 
@@ -528,7 +576,11 @@ export function useMultiColumnSync(
             return cellGroup;
         });
         tableRows.push(
-            <tr style={{ display }} className="border-t border-gray-300 dark:border-gray-600" key={modelId}>
+            <tr
+                style={{ display }}
+                className="border-t border-gray-300 dark:border-gray-600"
+                key={modelId}
+            >
                 <NameComponent name={name} modelId={modelId} isLlm={isLlm} />
                 {subCellGroups}
             </tr>

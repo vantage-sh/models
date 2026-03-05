@@ -102,10 +102,7 @@ function QueryFilter({
 }) {
     if (specificType === "boolean" || columnType === "boolean") {
         return (
-            <BooleanFilter
-                value={currentFilter}
-                onChange={(v) => onFilterChange(columnName, v)}
-            />
+            <BooleanFilter value={currentFilter} onChange={(v) => onFilterChange(columnName, v)} />
         );
     }
     if (columnType === "string") {
@@ -167,35 +164,34 @@ export default function ColumnsHeader({
         });
     }, [setQueries, queryIdx]);
 
-    const setSorting = React.useCallback((
-        columnName: string,
-        cb: (value: boolean | null) => boolean | null,
-    ) => {
-        const current = initialSorting?.[0] === columnName ? initialSorting[1] : null;
-        const next = cb(current ?? null);
-        if (next === null) {
-            onSortChange(null);
-        } else {
-            onSortChange([columnName, next]);
-        }
-    }, [initialSorting, onSortChange]);
+    const setSorting = React.useCallback(
+        (columnName: string, cb: (value: boolean | null) => boolean | null) => {
+            const current = initialSorting?.[0] === columnName ? initialSorting[1] : null;
+            const next = cb(current ?? null);
+            if (next === null) {
+                onSortChange(null);
+            } else {
+                onSortChange([columnName, next]);
+            }
+        },
+        [initialSorting, onSortChange]
+    );
 
-    const end = React.useMemo(() => (
-        <>
-            <button
-                className="px-2 py-1 text-xs text-red-600 dark:text-red-400 hover:text-white hover:bg-red-600 rounded transition block"
-                title="Delete column"
-                onClick={deleteQuery}
-            >
-                &#x2715;
-            </button>
-            <SQLEditorButton
-                query={joined}
-                updateQuery={updateQuery}
-                firstId={firstId}
-            />
-        </>
-    ), [deleteQuery, joined, updateQuery, firstId]);
+    const end = React.useMemo(
+        () => (
+            <>
+                <button
+                    className="px-2 py-1 text-xs text-red-600 dark:text-red-400 hover:text-white hover:bg-red-600 rounded transition block"
+                    title="Delete column"
+                    onClick={deleteQuery}
+                >
+                    &#x2715;
+                </button>
+                <SQLEditorButton query={joined} updateQuery={updateQuery} firstId={firstId} />
+            </>
+        ),
+        [deleteQuery, joined, updateQuery, firstId]
+    );
 
     if (!columns) {
         return (
@@ -228,9 +224,7 @@ export default function ColumnsHeader({
                             {column}
                         </div>
                         <SortingButtons
-                            ascending={
-                                initialSorting?.[0] === column ? initialSorting[1] : null
-                            }
+                            ascending={initialSorting?.[0] === column ? initialSorting[1] : null}
                             setSorting={setSorting}
                             columnName={column}
                         />

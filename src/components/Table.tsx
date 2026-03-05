@@ -51,7 +51,6 @@ function NameFilter({
     );
 }
 
-
 function Toolbar({
     modelType,
     addQueryOpen,
@@ -174,27 +173,25 @@ function Cell({
     }, [value, columnSpecificDataType, currency]);
 }
 
-function CustomTd({
-    children,
-    queryIdx,
-    columnName,
-    isLlm,
-}: CustomTdProps) {
+function CustomTd({ children, queryIdx, columnName, isLlm }: CustomTdProps) {
     const path = isLlm ? "/" : "/image-models"; // FIXME: This is a hack.
     const [queries, setQueries] = useStateItem("queries", path);
 
-    const updateWidth = React.useCallback((newWidth: number) => {
-        if (columnName === null) return;
-        setQueries((prev) => {
-            const newQueries = [...prev];
-            const item = newQueries[queryIdx];
-            if (!item.widths) {
-                item.widths = {};
-            }
-            item.widths[columnName] = newWidth;
-            return newQueries;
-        });
-    }, [setQueries, columnName]);
+    const updateWidth = React.useCallback(
+        (newWidth: number) => {
+            if (columnName === null) return;
+            setQueries((prev) => {
+                const newQueries = [...prev];
+                const item = newQueries[queryIdx];
+                if (!item.widths) {
+                    item.widths = {};
+                }
+                item.widths[columnName] = newWidth;
+                return newQueries;
+            });
+        },
+        [setQueries, columnName]
+    );
 
     if (columnName === null) {
         return (
@@ -208,9 +205,7 @@ function CustomTd({
     return (
         <Column
             columnType="td"
-            initialWidth={
-                queries[queryIdx]?.widths?.[columnName] || DEFAULT_COLUMN_WIDTH
-            }
+            initialWidth={queries[queryIdx]?.widths?.[columnName] || DEFAULT_COLUMN_WIDTH}
             updateWidth={updateWidth}
             key={columnName}
         >
@@ -219,15 +214,7 @@ function CustomTd({
     );
 }
 
-function NameView({
-    name,
-    modelId,
-    isLlm,
-}: {
-    name: string;
-    modelId: string;
-    isLlm: boolean;
-}) {
+function NameView({ name, modelId, isLlm }: { name: string; modelId: string; isLlm: boolean }) {
     const modelPath = isLlm ? "llm-models" : "image-models";
     return (
         <td className="relative">
@@ -255,19 +242,22 @@ export default function Table({
     const [nameFilter, setNameFilter] = useStateItem("nameFilter", path);
     const [addQueryOpen, setAddQueryOpen] = React.useState(false);
 
-    const onQueryChange = React.useCallback((
-        query: string,
-        columnSpecificDataTypes: Record<string, ColumnDataType>,
-        queryIdx: number,
-    ) => {
-        setQueries((prev) => {
-            const newQueries = [...prev];
-            const item = newQueries[queryIdx];
-            item.query = query;
-            item.columnExplicitlySetDataTypes = columnSpecificDataTypes;
-            return newQueries;
-        });
-    }, [setQueries]);
+    const onQueryChange = React.useCallback(
+        (
+            query: string,
+            columnSpecificDataTypes: Record<string, ColumnDataType>,
+            queryIdx: number
+        ) => {
+            setQueries((prev) => {
+                const newQueries = [...prev];
+                const item = newQueries[queryIdx];
+                item.query = query;
+                item.columnExplicitlySetDataTypes = columnSpecificDataTypes;
+                return newQueries;
+            });
+        },
+        [setQueries]
+    );
 
     const queriesPartial = React.useMemo(() => {
         return queries.map((q) => ({
@@ -277,22 +267,21 @@ export default function Table({
         }));
     }, [JSON.stringify(queries)]); // This is bad. Never do this. This is a weird case.
 
-    const onFilterChange = React.useCallback((
-        columnName: string,
-        filter: any,
-        queryIdx: number,
-    ) => {
-        setQueries((prev) => {
-            const newQueries = [...prev];
-            const item = newQueries[queryIdx];
-            if (filter === undefined) {
-                delete item.columnFilters[columnName];
-            } else {
-                item.columnFilters[columnName] = filter;
-            }
-            return newQueries;
-        });
-    }, [setQueries]);
+    const onFilterChange = React.useCallback(
+        (columnName: string, filter: any, queryIdx: number) => {
+            setQueries((prev) => {
+                const newQueries = [...prev];
+                const item = newQueries[queryIdx];
+                if (filter === undefined) {
+                    delete item.columnFilters[columnName];
+                } else {
+                    item.columnFilters[columnName] = filter;
+                }
+                return newQueries;
+            });
+        },
+        [setQueries]
+    );
 
     const [headersWithoutName, tableRows] = useMultiColumnSync(
         queriesPartial,
@@ -305,7 +294,7 @@ export default function Table({
         nameFilter,
         NameView,
         path === "/",
-        models[0].id,
+        models[0].id
     );
 
     return (
@@ -331,9 +320,7 @@ export default function Table({
                                     {headersWithoutName}
                                 </tr>
                             </thead>
-                            <tbody className="h-full overflow-y-scroll">
-                                {tableRows}
-                            </tbody>
+                            <tbody className="h-full overflow-y-scroll">{tableRows}</tbody>
                         </table>
                     </div>
                 </div>

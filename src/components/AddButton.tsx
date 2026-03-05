@@ -27,7 +27,8 @@ export default function AddButton({
     const [activeTab, setActiveTab] = React.useState<"default" | "vendor">("default");
     const modalRef = React.useRef<HTMLDialogElement>(null);
 
-    const setQueriesAndPurgeLoadedValues = (cb: (prev: ColumnQuery[]) => ColumnQuery[]) => setQueries(cb);
+    const setQueriesAndPurgeLoadedValues = (cb: (prev: ColumnQuery[]) => ColumnQuery[]) =>
+        setQueries(cb);
 
     if (!isOpen) return null;
 
