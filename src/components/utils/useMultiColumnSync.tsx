@@ -1,14 +1,20 @@
 import React, { type JSX } from "react";
 import type { ColumnDataType } from "../Table";
 import { loadSingleRow } from "@/src/sqlEngine";
+import checkFilters from "../filters/checkFilters";
+import sortValue from "./sortValue";
 
 export type ColumnsHeaderProps = {
     columns: string[] | null;
+    // Hook that returns a comma-joined dominant-type string per column.
+    // Only changes identity (triggering re-render) when the type mix changes.
+    useColumnTypes: () => string;
+    filters: Record<string, any>;
     query: string;
     queryIdx: number;
     columnSpecificDataTypes: Record<string, ColumnDataType>;
     updateQuery: (query: string, columnSpecificDataTypes: Record<string, ColumnDataType>) => void;
-    initialFilter: [string, boolean] | null;
+    initialSorting: [string, boolean] | null;
     onFilterChange: (columnName: string, filter: any) => void;
     onSortChange: (v: [string, boolean] | null) => void;
     isLlm: boolean;
@@ -120,21 +126,23 @@ function CellGroup({
     ));
 }
 
-function checkFilters(
-    _value: any,
-    _filter: any,
-): boolean {
-    // TODO
-    return true;
-}
-
-function sortColumns(
-    _aValues: any[],
-    _bValues: any[],
-    _currentSorting: [string, boolean] | null,
-): number {
-    // TODO
-    return 0;
+// Computes a comma-joined string of dominant types per column.
+// Only changes when the actual type mix changes — used as a stable useSyncExternalStore snapshot.
+function computeColumnTypeKey(content: Map<string, any[] | string>, columns: string[] | null): string {
+    if (!columns || columns.length === 0) return "";
+    return columns.map((_, colIdx) => {
+        const typeSet = new Set<string>();
+        for (const row of content.values()) {
+            if (!Array.isArray(row)) continue;
+            const val = row[colIdx];
+            if (val !== null && val !== undefined) {
+                typeSet.add(typeof val);
+            }
+        }
+        if (typeSet.size === 0) return "";
+        if (typeSet.size === 1) return typeSet.values().next().value!;
+        return "mixed";
+    }).join(",");
 }
 
 // Pure function — no hooks. Safe to call in a loop.
@@ -143,6 +151,7 @@ function createSqlSyncLayer(
     queryIdx: number,
     columns: string[] | null,
     columnSpecificDataTypes: Record<string, ColumnDataType>,
+    filters: Record<string, any>,
     onQueryChange: (query: string, columnSpecificDataTypes: Record<string, ColumnDataType>) => void,
     orderForColumn: [string, boolean] | null,
     onSortChange: (v: [string, boolean] | null) => void,
@@ -150,6 +159,7 @@ function createSqlSyncLayer(
     onFilterChange: (columnName: string, filter: any) => void,
     updateContent: (modelId: string, newContent: any[] | string, newColumns: string[] | null) => void,
     content: Map<string, any[] | string>,
+    useColumnTypes: () => string,
     cellComponent: (props: CellProps) => any,
     ColumnsHeader: (props: ColumnsHeaderProps) => JSX.Element | JSX.Element[],
     customTdComponent: ((props: CustomTdProps) => JSX.Element) | null,
@@ -158,31 +168,39 @@ function createSqlSyncLayer(
 ) {
     // Sort model IDs based on loaded content.
     let modelIdsSorted: string[];
-    if (columns === null) {
+    if (columns === null || orderForColumn === null) {
         modelIdsSorted = modelIds;
     } else {
-        modelIdsSorted = modelIds.slice().sort((a, b) => {
-            const aValues = content.get(a);
-            const bValues = content.get(b);
-            if (aValues === undefined) return -1;
-            if (bValues === undefined) return 1;
-            if (typeof aValues === "string") {
-                if (typeof bValues === "string") return aValues.localeCompare(bValues);
-                return -1;
-            }
-            if (typeof bValues === "string") return 1;
-            return sortColumns(aValues as any[], bValues as any[], orderForColumn);
-        });
+        const [sortCol, ascending] = orderForColumn;
+        const colIdx = columns.indexOf(sortCol);
+        if (colIdx === -1) {
+            modelIdsSorted = modelIds;
+        } else {
+            modelIdsSorted = modelIds.slice().sort((a, b) => {
+                const aValues = content.get(a);
+                const bValues = content.get(b);
+                if (aValues === undefined || typeof aValues === "string") return ascending ? 1 : -1;
+                if (bValues === undefined || typeof bValues === "string") return ascending ? -1 : 1;
+                return sortValue(
+                    (aValues as any[])[colIdx],
+                    (bValues as any[])[colIdx],
+                    ascending,
+                    columnSpecificDataTypes[sortCol],
+                );
+            });
+        }
     }
 
     const columnsHeader = (
         <ColumnsHeader
             columns={columns}
+            useColumnTypes={useColumnTypes}
+            filters={filters}
             query={query}
             queryIdx={queryIdx}
             columnSpecificDataTypes={columnSpecificDataTypes}
             updateQuery={onQueryChange}
-            initialFilter={orderForColumn}
+            initialSorting={orderForColumn}
             onFilterChange={onFilterChange}
             onSortChange={onSortChange}
             key={queryIdx}
@@ -255,18 +273,53 @@ export function useMultiColumnSync(
         queries.map(() => new Set()),
     );
 
-    // Detect query text changes and reset stale content. Done synchronously during render
+    // Per-query type-change subscription. Listeners are notified only when the dominant
+    // value type per column changes — so ColumnsHeader only re-renders when it needs to
+    // update its filter UI, not on every row load.
+    // Pre-sized to match initial queries so initial slots are always populated.
+    const typeListenersRef = React.useRef<Set<() => void>[]>(queries.map(() => new Set()));
+    const typeSnapshotsRef = React.useRef<string[]>(queries.map(() => ""));
+    // Stable hook factories — created once per slot, never recreated.
+    // Starts empty; populated synchronously on first render for all slots.
+    const typeHookFactoriesRef = React.useRef<Array<() => string>>([]);
+
+    // Detect query text/slot changes and reset stale content. Runs synchronously during render
     // (writing to refs during render is safe in React).
     const prevQueryStringsRef = React.useRef(queries.map((q) => q.query));
     for (let idx = 0; idx < queries.length; idx++) {
+        // Create hook factory if missing (first render for all slots, or a new query added).
+        if (typeHookFactoriesRef.current[idx] === undefined) {
+            if (typeListenersRef.current[idx] === undefined) {
+                typeListenersRef.current[idx] = new Set();
+                typeSnapshotsRef.current[idx] = "";
+            }
+            const capturedIdx = idx;
+            typeHookFactoriesRef.current[capturedIdx] = () => React.useSyncExternalStore(
+                (ln) => {
+                    typeListenersRef.current[capturedIdx].add(ln);
+                    // Use ?. so that unsubscribing after the slot was trimmed doesn't crash.
+                    return () => typeListenersRef.current[capturedIdx]?.delete(ln);
+                },
+                () => typeSnapshotsRef.current[capturedIdx],
+                () => "",
+            );
+        }
+
         if (contentPerQuery.current[idx] === undefined) {
             contentPerQuery.current[idx] = new Map();
             hiddenPerQuery.current[idx] = new Set();
         } else if (prevQueryStringsRef.current[idx] !== queries[idx].query) {
+            // Query text changed (or index shifted after deletion) — clear stale content.
+            // Don't notify listeners here: calling setState on ColumnsHeader while Table
+            // is rendering causes a React warning. The header will pick up updated types
+            // naturally once new row data arrives.
             contentPerQuery.current[idx] = new Map();
             hiddenPerQuery.current[idx] = new Set();
+            typeSnapshotsRef.current[idx] = "";
         }
     }
+    // Only trim content/hidden (per-query data). Leave listener/factory arrays untrimmed
+    // so that unmounting ColumnsHeader components can still safely unsubscribe.
     contentPerQuery.current.length = queries.length;
     hiddenPerQuery.current.length = queries.length;
     prevQueryStringsRef.current = queries.map((q) => q.query);
@@ -292,6 +345,65 @@ export function useMultiColumnSync(
         return queries.map((_, i) => columnsPerQuery[i] ?? null);
     }, [columnsPerQuery, queries.length]);
 
+    // Stable refs for use inside effects without stale closures.
+    const effectiveColumnsPerQueryRef = React.useRef(effectiveColumnsPerQuery);
+    effectiveColumnsPerQueryRef.current = effectiveColumnsPerQuery;
+    const queriesRef = React.useRef(queries);
+    queriesRef.current = queries;
+    // Keep track of the original unsorted order so we can restore it on sort clear.
+    const originalOrderRef = React.useRef(modelIdsAndNames);
+    originalOrderRef.current = modelIdsAndNames;
+
+    // Re-sort (or restore) the row order whenever the active sort changes.
+    React.useEffect(() => {
+        if (currentSorting === null) {
+            setModelIdsAndNamesSorted([...originalOrderRef.current]);
+            return;
+        }
+        const [sortQueryIdx, [sortCol, ascending]] = currentSorting;
+        const cols = effectiveColumnsPerQueryRef.current[sortQueryIdx];
+        if (!cols) return;
+        const colIdx = cols.indexOf(sortCol);
+        if (colIdx === -1) return;
+        const dataType = queriesRef.current[sortQueryIdx]?.columnSpecificDataTypes[sortCol];
+        setModelIdsAndNamesSorted((prev) =>
+            [...prev].sort((a, b) => {
+                const aValues = contentPerQuery.current[sortQueryIdx]?.get(a.id);
+                const bValues = contentPerQuery.current[sortQueryIdx]?.get(b.id);
+                if (!Array.isArray(aValues)) return ascending ? 1 : -1;
+                if (!Array.isArray(bValues)) return ascending ? -1 : 1;
+                return sortValue(aValues[colIdx], bValues[colIdx], ascending, dataType);
+            }),
+        );
+    }, [currentSorting]);
+
+    // Recompute row visibility whenever filters change.
+    const filtersKey = queries.map((q) => JSON.stringify(q.filters)).join("||");
+    React.useEffect(() => {
+        queries.forEach((query, idx) => {
+            const cols = effectiveColumnsPerQueryRef.current[idx];
+            if (!cols) return;
+            const hiddenSet = hiddenPerQuery.current[idx];
+            const content = contentPerQuery.current[idx];
+            for (const [modelId, rowContent] of content.entries()) {
+                if (!Array.isArray(rowContent)) continue;
+                const row: Record<string, any> = {};
+                cols.forEach((col, i) => { row[col] = (rowContent as any[])[i]; });
+                const wasHidden = hiddenSet.has(modelId);
+                const isHidden = !checkFilters(row, query.filters, query.columnSpecificDataTypes);
+                if (wasHidden !== isHidden) {
+                    if (isHidden) hiddenSet.add(modelId);
+                    else hiddenSet.delete(modelId);
+                    const count = hidden.get(modelId) ?? 0;
+                    const next = isHidden ? count + 1 : count - 1;
+                    if (next <= 0) hidden.delete(modelId);
+                    else hidden.set(modelId, next);
+                }
+            }
+        });
+        setIncr((i) => i + 1);
+    }, [filtersKey]);
+
     const queryComponents = queries.map((query, idx) => {
         const onSpecificQueryChange = (newQuery: string, newColumnSpecificDataTypes: Record<string, ColumnDataType>) => {
             onQueryChange(newQuery, newColumnSpecificDataTypes, idx);
@@ -306,15 +418,10 @@ export function useMultiColumnSync(
         };
 
         const setHidden = (modelId: string, show: boolean) => {
-            const hiddenCount = hidden.get(modelId) || 0;
-            if (show) {
-                hidden.set(modelId, hiddenCount - 1);
-            } else {
-                hidden.set(modelId, hiddenCount + 1);
-            }
-            if (hiddenCount === 0) {
-                hidden.delete(modelId);
-            }
+            const hiddenCount = hidden.get(modelId) ?? 0;
+            const newCount = show ? hiddenCount - 1 : hiddenCount + 1;
+            if (newCount <= 0) hidden.delete(modelId);
+            else hidden.set(modelId, newCount);
             setIncr((i) => i + 1);
         };
 
@@ -338,29 +445,44 @@ export function useMultiColumnSync(
 
                 // Recompute sort order if this query owns the current sort.
                 if (currentSorting?.[0] === idx) {
-                    const sortedIds = modelIds.slice().sort((a, b) => {
-                        const aValues = contentPerQuery.current[idx].get(a);
-                        const bValues = contentPerQuery.current[idx].get(b);
-                        if (aValues === undefined) return -1;
-                        if (bValues === undefined) return 1;
-                        if (typeof aValues === "string") {
-                            if (typeof bValues === "string") return aValues.localeCompare(bValues);
-                            return -1;
-                        }
-                        if (typeof bValues === "string") return 1;
-                        return sortColumns(aValues as any[], bValues as any[], currentSorting[1]);
-                    });
-                    setModelIds(sortedIds);
+                    const [sortCol, ascending] = currentSorting[1];
+                    const colIdx = (effectiveColumnsPerQuery[idx] ?? newColumns).indexOf(sortCol);
+                    if (colIdx !== -1) {
+                        const sortedIds = modelIds.slice().sort((a, b) => {
+                            const aValues = contentPerQuery.current[idx].get(a);
+                            const bValues = contentPerQuery.current[idx].get(b);
+                            if (aValues === undefined || typeof aValues === "string") return ascending ? 1 : -1;
+                            if (bValues === undefined || typeof bValues === "string") return ascending ? -1 : 1;
+                            return sortValue(
+                                (aValues as any[])[colIdx],
+                                (bValues as any[])[colIdx],
+                                ascending,
+                                query.columnSpecificDataTypes[sortCol],
+                            );
+                        });
+                        setModelIds(sortedIds);
+                    }
                 }
 
-                // Update per-query visibility.
-                const hiddenSet = hiddenPerQuery.current[idx];
-                const wasHidden = hiddenSet.has(modelId);
-                const isHidden = !checkFilters(newContent, query.filters);
-                if (wasHidden !== isHidden) {
-                    if (isHidden) hiddenSet.add(modelId);
-                    else hiddenSet.delete(modelId);
-                    setHidden(modelId, !isHidden);
+                // Update per-query visibility using real checkFilters.
+                if (Array.isArray(newContent)) {
+                    const row: Record<string, any> = {};
+                    newColumns.forEach((col, i) => { row[col] = (newContent as any[])[i]; });
+                    const hiddenSet = hiddenPerQuery.current[idx];
+                    const wasHidden = hiddenSet.has(modelId);
+                    const isHidden = !checkFilters(row, query.filters, query.columnSpecificDataTypes);
+                    if (wasHidden !== isHidden) {
+                        if (isHidden) hiddenSet.add(modelId);
+                        else hiddenSet.delete(modelId);
+                        setHidden(modelId, !isHidden);
+                    }
+                }
+
+                // Notify type listeners only when the dominant type per column changes.
+                const newTypeKey = computeColumnTypeKey(contentPerQuery.current[idx], newColumns);
+                if (newTypeKey !== typeSnapshotsRef.current[idx]) {
+                    typeSnapshotsRef.current[idx] = newTypeKey;
+                    typeListenersRef.current[idx]?.forEach((ln) => ln());
                 }
             }
 
@@ -372,6 +494,7 @@ export function useMultiColumnSync(
             idx,
             effectiveColumnsPerQuery[idx],
             query.columnSpecificDataTypes,
+            query.filters,
             onSpecificQueryChange,
             currentSorting?.[0] === idx ? currentSorting[1] : null,
             setSorting,
@@ -379,6 +502,7 @@ export function useMultiColumnSync(
             setFilter,
             updateContent,
             contentPerQuery.current[idx],
+            typeHookFactoriesRef.current[idx] ?? (() => ""),
             cellComponent,
             columnsHeaderComponent,
             customTdComponent,

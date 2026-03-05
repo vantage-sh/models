@@ -1,19 +1,28 @@
 import React from "react";
 import type { VendorInfo } from "../dataFormat";
 import { clearState, useStateItem } from "../state";
-import { useMultiColumnSync, type ColumnsHeaderProps, type CustomTdProps } from "./utils/useMultiColumnSync";
+import { useMultiColumnSync, type CustomTdProps } from "./utils/useMultiColumnSync";
 import { PlusIcon, XIcon } from "lucide-react";
 import RunQueryButton from "./RunQueryButton";
 import CurrencyPicker from "./CurrencyPicker";
 import AddButton from "./AddButton";
 import Column from "./Column";
 import forexData from "../forex.json";
-import SQLEditorButton from "./SQLEditorButton";
 import Link from "./Link";
+import ColumnsHeader from "./ColumnsHeader";
 
 export const DEFAULT_COLUMN_WIDTH = 200;
 
 export type ColumnDataType = "boolean" | "currency" | "country";
+
+export type ColumnQuery = {
+    query: string;
+    columnExplicitlySetDataTypes: Record<string, ColumnDataType>;
+    columnFilters: Record<string, any>;
+    widths?: Record<string, number>;
+};
+
+export type LoadedValues = (any[] | null | { error: string })[] | null;
 
 function NameFilter({
     nameFilter,
@@ -165,93 +174,6 @@ function Cell({
     }, [value, columnSpecificDataType, currency]);
 }
 
-function ColumnsHeader({
-    columns,
-    query,
-    queryIdx,
-    columnSpecificDataTypes,
-    updateQuery,
-    initialFilter,
-    onFilterChange,
-    onSortChange,
-    isLlm,
-    firstId,
-}: ColumnsHeaderProps) {
-    const path = isLlm ? "/" : "/image-models"; // FIXME: This is a hack.
-    const [queries, setQueries] = useStateItem("queries", path);
-
-    const joined = React.useMemo(() => {
-        return {
-            query: query,
-            columnExplicitlySetDataTypes: columnSpecificDataTypes,
-        };
-    }, [query, columnSpecificDataTypes]);
-
-    const deleteQuery = React.useCallback(() => {
-        setQueries((prev) => {
-            const newQueries = [...prev];
-            newQueries.splice(queryIdx, 1);
-            return newQueries;
-        });
-    }, [setQueries]);
-
-    // Handle the end bit of the table.
-    const end = React.useMemo(() => {
-        return (
-            <>
-                <button
-                    className="px-2 py-1 text-xs text-red-600 dark:text-red-400 hover:text-white hover:bg-red-600 rounded transition block"
-                    title="Delete column"
-                    onClick={deleteQuery}
-                >
-                    &#x2715;
-                </button>
-                <SQLEditorButton
-                    query={joined}
-                    updateQuery={updateQuery}
-                    firstId={firstId}
-                />
-            </>
-        );
-    }, [queryIdx, deleteQuery, joined, updateQuery, firstId]);
-
-    // Handle each column.
-    return React.useMemo(() => {
-        if (!columns) {
-            // Since the state is potentially broken, we show one column with a remove/edit button.
-            return (
-                <th 
-                    className="pb-1 relative bg-[#F7F7F9] dark:bg-gray-900 align-bottom"
-                >
-                    {end}
-                    <div className="absolute top-0 right-0 w-1 h-full bg-gray-200 dark:bg-gray-700 hover:opacity-50 transition-all duration-150" />
-                </th>
-            );
-        }
-        return columns.map((column, index) => {
-            return (
-                <Column
-                    columnType="th"
-                    key={column}
-                    initialWidth={queries[queryIdx]?.widths?.[column] || DEFAULT_COLUMN_WIDTH}
-                    updateWidth={(newWidth) => {
-                        setQueries((prev) => {
-                            const newQueries = [...prev];
-                            const item = newQueries[queryIdx];
-                            item.widths[column] = newWidth;
-                            return newQueries;
-                        });
-                    }}
-                >
-                    {column}
-                    TODO: Everything else here.
-                    {index === columns.length - 1 ? end : null}
-                </Column>
-            );
-        });
-    }, [columns, queryIdx, queries, setQueries, end]);
-}
-
 function CustomTd({
     children,
     queryIdx,
@@ -363,7 +285,11 @@ export default function Table({
         setQueries((prev) => {
             const newQueries = [...prev];
             const item = newQueries[queryIdx];
-            item.columnFilters[columnName] = filter;
+            if (filter === undefined) {
+                delete item.columnFilters[columnName];
+            } else {
+                item.columnFilters[columnName] = filter;
+            }
             return newQueries;
         });
     }, [setQueries]);
@@ -411,13 +337,13 @@ export default function Table({
                         </table>
                     </div>
                 </div>
-                {/* FIXME <AddButton
+                <AddButton
                     isOpen={addQueryOpen}
                     onClose={() => setAddQueryOpen(false)}
                     firstId={models[0]?.id || ""}
                     vendors={vendors}
                     modelType={modelType}
-                /> */}
+                />
             </div>
         </div>
     );

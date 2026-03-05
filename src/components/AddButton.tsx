@@ -1,5 +1,5 @@
 import React from "react";
-import type { ColumnQuery, LoadedValues } from "./Table";
+import type { ColumnQuery } from "./Table";
 import { XIcon, Code2Icon } from "lucide-react";
 import SQLModal from "./SQLModal";
 import DefaultSelector from "./DefaultSelector";
@@ -11,14 +11,12 @@ export default function AddButton({
     isOpen,
     onClose,
     firstId,
-    loadedValuesRows,
     vendors,
     modelType,
 }: {
     isOpen: boolean;
     onClose: () => void;
     firstId: string;
-    loadedValuesRows: Map<string, LoadedValues>;
     vendors: Record<string, VendorInfo>;
     modelType: "llm" | "image";
 }) {
@@ -29,13 +27,7 @@ export default function AddButton({
     const [activeTab, setActiveTab] = React.useState<"default" | "vendor">("default");
     const modalRef = React.useRef<HTMLDialogElement>(null);
 
-    const setQueriesAndPurgeLoadedValues = React.useCallback(
-        (cb: (prev: ColumnQuery[]) => ColumnQuery[]) => {
-            loadedValuesRows.clear();
-            setQueries(cb);
-        },
-        [setQueries, loadedValuesRows]
-    );
+    const setQueriesAndPurgeLoadedValues = (cb: (prev: ColumnQuery[]) => ColumnQuery[]) => setQueries(cb);
 
     if (!isOpen) return null;
 

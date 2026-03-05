@@ -19,6 +19,8 @@ export default function checkFilters(
 
         const rowVal = row[col];
         if (rowVal === null || rowVal === undefined) {
+            // >= 0 is the default/reset state for number filters — treat null as passing.
+            if (Array.isArray(val) && val[0] === ">=" && val[1] === 0) continue;
             return false;
         }
         switch (typeof rowVal) {

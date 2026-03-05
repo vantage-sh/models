@@ -1,5 +1,5 @@
 import React from "react";
-import type { ColumnDataType } from "./Table";
+import type { ColumnDataType, ColumnQuery } from "./Table";
 import { PencilIcon, XIcon } from "lucide-react";
 import { CodeMirror, testQuery } from "./SQLModal";
 import ColumnCustomTypeSelector from "./ColumnCustomTypeSelector";
@@ -8,13 +8,11 @@ import { loadSingleRow } from "../sqlEngine";
 import { detectColumnRename, migrateColumnConfigs } from "./utils/migrateColumnConfigs";
 import QueryHelp from "./QueryHelp";
 
-export type ColumnQueryPartial = {
-    query: string;
-    columnExplicitlySetDataTypes: Record<string, ColumnDataType>;
-};
+// Keep the alias for any external consumers.
+export type ColumnQueryPartial = ColumnQuery;
 
 type SQLEditorButtonProps = {
-    query: ColumnQueryPartial;
+    query: ColumnQuery;
     firstId: string;
     updateQuery: (
         query: string,
