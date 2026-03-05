@@ -25,6 +25,14 @@ const MODEL_NAME_OVERRIDES: Record<string, string> = {
     "gpt-4.1-nano": "GPT-4.1 Nano",
     "gpt-5": "GPT-5",
     "gpt-5-mini": "GPT-5 Mini",
+    "gpt-5.1": "GPT-5.1",
+    "gpt-5.1-mini": "GPT-5.1 Mini",
+    "gpt-5.2": "GPT-5.2",
+    "gpt-5.2-mini": "GPT-5.2 Mini",
+    "gpt-5.3": "GPT-5.3",
+    "gpt-5.3-mini": "GPT-5.3 Mini",
+    "gpt-5.4": "GPT-5.4",
+    "gpt-5.4-mini": "GPT-5.4 Mini",
     "chatgpt-4o-latest": "GPT-4o",
 };
 
@@ -37,6 +45,8 @@ const INCLUDED_MODEL_PREFIXES = [
     "gpt-5",
     "gpt-5.1",
     "gpt-5.2",
+    "gpt-5.3",
+    "gpt-5.4",
     "o1",
     "o3",
     "o4",
