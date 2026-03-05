@@ -15,7 +15,7 @@ export type CustomTdProps = {
     isLlm: boolean;
     children?: any;
     queryIdx: number;
-    columnIdx: number;
+    columnName: string | null;
 };
 
 type CellGroupProps = {
@@ -68,24 +68,24 @@ function CellGroup({
         if (columns) {
             // Make N-1 blank cells.
             const cells = [
-                <Td queryIdx={queryIdx} columnIdx={0} isLlm={isLlm}>
+                <Td queryIdx={queryIdx} columnName={columns[0] || null} isLlm={isLlm}>
                     {result}
                 </Td>
             ]
             for (let i = 0; i < columns.length - 1; i++) {
-                cells.push(<Td queryIdx={queryIdx} columnIdx={i + 1} isLlm={isLlm}></Td>);
+                cells.push(<Td queryIdx={queryIdx} columnName={columns[i + 1]} isLlm={isLlm}></Td>);
             }
             return cells;
         }
-        return <Td queryIdx={queryIdx} columnIdx={-1} isLlm={isLlm}>{result}</Td>;
+        return <Td queryIdx={queryIdx} columnName={null} isLlm={isLlm}>{result}</Td>;
     }
 
     if (!columns || !result) {
-        return <Td queryIdx={queryIdx} columnIdx={-1} isLlm={isLlm}></Td>
+        return <Td queryIdx={queryIdx} columnName={null} isLlm={isLlm}></Td>
     }
 
     return columns.map((column, index) => (
-        <Td queryIdx={queryIdx} columnIdx={index} isLlm={isLlm} key={column}>
+        <Td queryIdx={queryIdx} columnName={column} isLlm={isLlm} key={column}>
             <Cell value={result[index]} columnSpecificDataType={columnSpecificDataTypes[column]} isLlm={isLlm} />
         </Td>
     ));
@@ -120,7 +120,7 @@ function createSqlSyncLayer(
     filtersPerColumn: Record<string, any>,
     onFilterChange: (columnName: string, filter: any) => void,
     onModelIdShowOrHide: (modelId: string, show: boolean) => void,
-    cellComponent: (props: CellProps) => JSX.Element,
+    cellComponent: (props: CellProps) => any,
     ColumnsHeader: (props: ColumnsHeaderProps) => JSX.Element,
     customTdComponent: ((props: CustomTdProps) => JSX.Element) | null,
     isLlm: boolean,
@@ -369,7 +369,7 @@ export function useMultiColumnSync(
         queryIdx: number,
     ) => void,
     modelIdsAndNames: { id: string; name: string }[],
-    cellComponent: (props: CellProps) => JSX.Element,
+    cellComponent: (props: CellProps) => any,
     columnsHeaderComponent: (props: ColumnsHeaderProps) => JSX.Element,
     customTdComponent: ((props: CustomTdProps) => JSX.Element) | null,
     nameFilter: string,
@@ -387,6 +387,7 @@ export function useMultiColumnSync(
     const modelIds = React.useMemo(() => {
         return modelIdsAndNamesSorted.map(({ id }) => id);
     }, [modelIdsAndNamesSorted]);
+    const [, setIncr] = React.useState(0);
 
     const setModelIds = React.useCallback((newModelIds: string[]) => {
         setModelIdsAndNamesSorted(newModelIds.map((id) => ({
@@ -425,7 +426,8 @@ export function useMultiColumnSync(
                 if (hiddenCount === 0) {
                     hidden.delete(modelId);
                 }
-            }, [hidden]);
+                setIncr((i) => i + 1);
+            }, [hidden, setIncr]);
 
             return createSqlSyncLayer(
                 query.query,
