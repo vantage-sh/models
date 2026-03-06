@@ -99,7 +99,7 @@ function CellGroup({
             } catch (e) {
                 if (aliveRef.current) {
                     setResult(null);
-                    updateContent(modelId, [], []);
+                    updateContent(modelId, (e as Error).message, []);
                 }
             }
         };

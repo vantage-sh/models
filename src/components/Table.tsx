@@ -195,7 +195,7 @@ function CustomTd({ children, queryIdx, columnName, isLlm }: CustomTdProps) {
 
     if (columnName === null) {
         return (
-            <td>
+            <td className="relative">
                 {children}
                 <div className="absolute top-0 right-0 w-1 h-full cursor-col-resize bg-gray-200 dark:bg-gray-700 hover:opacity-50 transition-all duration-150" />
             </td>
@@ -298,40 +298,42 @@ export default function Table({
     );
 
     return (
-        <div className="flex flex-col h-full">
-            <Toolbar
-                modelType={modelType}
-                addQueryOpen={addQueryOpen}
-                setAddQueryOpen={setAddQueryOpen}
-            />
-            <div className="flex flex-1 overflow-hidden">
-                <div className="flex-1 overflow-x-auto">
-                    <div className="flex items-start min-w-max">
-                        <table className="h-full">
-                            <thead className="sticky top-0 bg-[#F7F7F9] dark:bg-gray-900 z-10 shadow-[0_2px_0_0_rgb(209,213,219)] dark:shadow-[0_2px_0_0_rgb(75,85,99)]">
-                                <tr>
-                                    <th className="pb-1 relative bg-[#F7F7F9] dark:bg-gray-900 align-bottom">
-                                        <NameFilter
-                                            nameFilter={nameFilter}
-                                            setNameFilter={setNameFilter}
-                                        />
-                                        <div className="absolute top-0 right-0 w-1 h-full bg-gray-200 dark:bg-gray-700 hover:opacity-50 transition-all duration-150" />
-                                    </th>
-                                    {headersWithoutName}
-                                </tr>
-                            </thead>
-                            <tbody className="h-full overflow-y-scroll">{tableRows}</tbody>
-                        </table>
-                    </div>
-                </div>
-                <AddButton
-                    isOpen={addQueryOpen}
-                    onClose={() => setAddQueryOpen(false)}
-                    firstId={models[0]?.id || ""}
-                    vendors={vendors}
+        <React.StrictMode>
+            <div className="flex flex-col h-full">
+                <Toolbar
                     modelType={modelType}
+                    addQueryOpen={addQueryOpen}
+                    setAddQueryOpen={setAddQueryOpen}
                 />
+                <div className="flex flex-1 overflow-hidden">
+                    <div className="flex-1 overflow-x-auto">
+                        <div className="flex items-start min-w-max">
+                            <table className="h-full">
+                                <thead className="sticky top-0 bg-[#F7F7F9] dark:bg-gray-900 z-10 shadow-[0_2px_0_0_rgb(209,213,219)] dark:shadow-[0_2px_0_0_rgb(75,85,99)]">
+                                    <tr>
+                                        <th className="pb-1 relative bg-[#F7F7F9] dark:bg-gray-900 align-bottom">
+                                            <NameFilter
+                                                nameFilter={nameFilter}
+                                                setNameFilter={setNameFilter}
+                                            />
+                                            <div className="absolute top-0 right-0 w-1 h-full bg-gray-200 dark:bg-gray-700 hover:opacity-50 transition-all duration-150" />
+                                        </th>
+                                        {headersWithoutName}
+                                    </tr>
+                                </thead>
+                                <tbody className="h-full overflow-y-scroll">{tableRows}</tbody>
+                            </table>
+                        </div>
+                    </div>
+                    <AddButton
+                        isOpen={addQueryOpen}
+                        onClose={() => setAddQueryOpen(false)}
+                        firstId={models[0]?.id || ""}
+                        vendors={vendors}
+                        modelType={modelType}
+                    />
+                </div>
             </div>
-        </div>
+        </React.StrictMode>
     );
 }

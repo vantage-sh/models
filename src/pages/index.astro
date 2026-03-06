@@ -8,5 +8,5 @@ const llmModels = getModelIdsAndNames(data);
 ---
 
 <MainLayout>
-    <Table models={llmModels} vendors={data.vendors} modelType="llm" client:only="react" />
+    <Table models={llmModels} vendors={data.vendors} modelType="llm" client:load />
 </MainLayout>

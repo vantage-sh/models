@@ -13,7 +13,15 @@ export default defineConfig({
     plugins: [tailwindcss()],
   },
   prefetch: true,
-  integrations: [react(), sitemap()],
+  integrations: [react({
+    babel: {
+      plugins: [
+        [
+          "babel-plugin-react-compiler",
+        ],
+      ],
+    },
+  }), sitemap()],
   site: process.env.PUBLIC_BASE_URL,
   base: process.env.PUBLIC_BASE_PATH || undefined,
 });
