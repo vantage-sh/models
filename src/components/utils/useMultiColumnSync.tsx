@@ -275,13 +275,16 @@ export function useMultiColumnSync(
     nameFilter: string,
     NameComponent: (props: { name: string; modelId: string; isLlm: boolean }) => JSX.Element,
     isLlm: boolean,
-    firstId: string
+    firstId: string,
+    initialSorting: [number, string, boolean] | null,
+    onSortChange: (v: [number, string, boolean] | null) => void
 ) {
     const [modelIdsAndNamesSorted, setModelIdsAndNamesSorted] =
         React.useState<{ id: string; name: string }[]>(modelIdsAndNames);
     const hidden = React.useMemo(() => new Map<string, number>(), []);
     const [currentSorting, setCurrentSorting] = React.useState<[number, [string, boolean]] | null>(
-        null
+        () =>
+            initialSorting ? [initialSorting[0], [initialSorting[1], initialSorting[2]]] : null
     );
     const [, setIncr] = React.useState(0);
 
@@ -444,7 +447,10 @@ export function useMultiColumnSync(
         };
 
         const setSorting = (newSorting: [string, boolean] | null) => {
-            setCurrentSorting(newSorting === null ? null : [idx, newSorting]);
+            const next: [number, [string, boolean]] | null =
+                newSorting === null ? null : [idx, newSorting];
+            setCurrentSorting(next);
+            onSortChange(next === null ? null : [next[0], next[1][0], next[1][1]]);
         };
 
         const setFilter = (columnName: string, filter: any) => {
