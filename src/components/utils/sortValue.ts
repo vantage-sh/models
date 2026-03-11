@@ -8,11 +8,11 @@ export default function sortValue(
 ): number {
     let comparison = 0;
 
-    // Null values are always at the end
-    if (aVal === null) {
+    // Null/undefined values are always at the end
+    if (aVal === null || aVal === undefined) {
         return 1;
     }
-    if (bVal === null) {
+    if (bVal === null || bVal === undefined) {
         return -1;
     }
 

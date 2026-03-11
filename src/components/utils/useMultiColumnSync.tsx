@@ -83,7 +83,7 @@ function CellGroup({
                     if (!row) {
                         if (aliveRef.current) {
                             setResult(null);
-                            updateContent(modelId, [], []);
+                            updateContent(modelId, [], null);
                         }
                         return;
                     }
