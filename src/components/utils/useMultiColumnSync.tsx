@@ -403,7 +403,7 @@ export function useMultiColumnSync(
                 return sortValue(aValues[colIdx], bValues[colIdx], ascending, dataType);
             })
         );
-    }, [currentSorting]);
+    }, [currentSorting, effectiveColumnsPerQuery]);
 
     // Recompute row visibility whenever filters change.
     const filtersKey = queries.map((q) => JSON.stringify(q.filters)).join("||");
