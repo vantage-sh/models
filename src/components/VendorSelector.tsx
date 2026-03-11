@@ -271,13 +271,13 @@ function VendorItems({
     vendorSlug,
     setQueries,
     exit,
-    modelView,
+    isLlm,
 }: {
     vendors: Record<string, VendorInfo>;
     vendorSlug: string;
     setQueries: (cb: (prev: ColumnQuery[]) => ColumnQuery[]) => void;
     exit: () => void;
-    modelView: "llm" | "image";
+    isLlm: boolean;
 }) {
     let vendorInfo: VendorInfo | null = null;
     if (vendorSlug) {
@@ -289,7 +289,7 @@ function VendorItems({
 
     // Use appropriate query builders based on view
     const activeQueryBuilders =
-        modelView === "llm" ? vendorQueryBuilders : imageVendorQueryBuilders;
+        isLlm ? vendorQueryBuilders : imageVendorQueryBuilders;
 
     const handleQueryBuilderChange = React.useCallback(
         (e: React.ChangeEvent<HTMLSelectElement>) => {
@@ -422,12 +422,12 @@ export default function VendorSelector({
     setQueries,
     exit,
     vendors,
-    modelType,
+    isLlm,
 }: {
     setQueries: (cb: (prev: ColumnQuery[]) => ColumnQuery[]) => void;
     exit: () => void;
     vendors: Record<string, VendorInfo>;
-    modelType: "llm" | "image";
+    isLlm: boolean;
 }) {
     const [selectedVendorSlug, setSelectedVendorSlug] = React.useState<string>("");
 
@@ -455,7 +455,7 @@ export default function VendorSelector({
                 vendorSlug={selectedVendorSlug}
                 setQueries={setQueries}
                 exit={exit}
-                modelView={modelType}
+                isLlm={isLlm}
             />
         </div>
     );

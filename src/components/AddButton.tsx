@@ -12,17 +12,17 @@ export default function AddButton({
     onClose,
     firstId,
     vendors,
-    modelType,
+    isLlm,
 }: {
     isOpen: boolean;
     onClose: () => void;
     firstId: string;
     vendors: Record<string, VendorInfo>;
-    modelType: "llm" | "image";
+    isLlm: boolean;
 }) {
     const [queries, setQueries] = useStateItem(
         "queries",
-        modelType === "llm" ? "/" : "/image-models"
+        isLlm
     );
     const [activeTab, setActiveTab] = React.useState<"default" | "vendor">("default");
     const modalRef = React.useRef<HTMLDialogElement>(null);
@@ -101,14 +101,14 @@ export default function AddButton({
                         <DefaultSelector
                             queries={queries}
                             setQueries={setQueriesAndPurgeLoadedValues}
-                            modelType={modelType}
+                            isLlm={isLlm}
                         />
                     ) : (
                         <VendorSelector
                             setQueries={setQueriesAndPurgeLoadedValues}
                             exit={onClose}
                             vendors={vendors}
-                            modelType={modelType}
+                            isLlm={isLlm}
                         />
                     )}
                 </div>

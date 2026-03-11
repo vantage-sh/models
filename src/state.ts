@@ -154,9 +154,8 @@ export function clearState() {
 
 export function useStateItem<Key extends keyof State>(
     key: Key,
-    path: string
+    isLlm: boolean
 ): [State[Key], (newValue: State[Key] | ((prevValue: State[Key]) => State[Key])) => void] {
-    const isLlm = !END_IS_IMAGE_PATH.test(path);
     const currentState = isLlm ? currentLlmState : currentImageState;
     const initialState = isLlm ? initialLlmState : initialImageState;
 

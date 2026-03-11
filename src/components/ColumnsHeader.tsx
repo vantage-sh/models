@@ -140,8 +140,7 @@ export default function ColumnsHeader({
     isLlm,
     firstId,
 }: ColumnsHeaderProps) {
-    const path = isLlm ? "/" : "/image-models"; // FIXME: This is a hack.
-    const [queries, setQueries] = useStateItem("queries", path);
+    const [queries, setQueries] = useStateItem("queries", isLlm);
 
     // Only re-renders when the dominant value type per column changes.
     const columnTypesKey = useColumnTypes();

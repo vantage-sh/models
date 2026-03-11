@@ -5,13 +5,13 @@ import type { ColumnQuery } from "./Table";
 export default function DefaultSelector({
     queries,
     setQueries,
-    modelType,
+    isLlm,
 }: {
     queries: ColumnQuery[];
     setQueries: (cb: (prev: ColumnQuery[]) => ColumnQuery[]) => void;
-    modelType: "llm" | "image";
+    isLlm: boolean;
 }) {
-    const availableDefaults = modelType === "llm" ? defaultQueries : defaultImageQueries;
+    const availableDefaults = isLlm ? defaultQueries : defaultImageQueries;
 
     const checkedQueries = React.useMemo(() => {
         return availableDefaults

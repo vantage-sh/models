@@ -281,7 +281,7 @@ export function useMultiColumnSync(
     const [modelIdsAndNamesSorted, setModelIdsAndNamesSorted] =
         React.useState<{ id: string; name: string }[]>(modelIdsAndNames);
     const hidden = React.useMemo(() => new Map<string, number>(), []);
-    const [currentSorting, setCurrentSorting] = useStateItem("currentSorting", isLlm ? "/" : "/image-models"); // FIXME: This is a hack.
+    const [currentSorting, setCurrentSorting] = useStateItem("currentSorting", isLlm);
     const [, setIncr] = React.useState(0);
 
     // Per-query columns — lifted out of createSqlSyncLayer so hook count is stable.

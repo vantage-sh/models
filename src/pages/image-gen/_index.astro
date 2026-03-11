@@ -8,5 +8,5 @@ const imageModels = getImageModelIdsAndNames(data);
 ---
 
 <MainLayout>
-    <Table models={imageModels} vendors={data.vendors} modelType="image" client:only="react" />
+    <Table models={imageModels} vendors={data.vendors} isLlm={false} client:only="react" />
 </MainLayout>

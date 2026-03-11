@@ -52,11 +52,11 @@ function NameFilter({
 }
 
 function Toolbar({
-    modelType,
+    isLlm,
     addQueryOpen,
     setAddQueryOpen,
 }: {
-    modelType: "llm" | "image";
+    isLlm: boolean;
     addQueryOpen: boolean;
     setAddQueryOpen: (open: boolean) => void;
 }) {
@@ -73,7 +73,7 @@ function Toolbar({
                     <span className="text-xs text-gray-500 dark:text-gray-400 block mb-1">
                         Currency
                     </span>
-                    <CurrencyPicker modelType={modelType} />
+                    <CurrencyPicker isLlm={isLlm} />
                 </div>
                 <button
                     onClick={() => clearState()}
@@ -166,16 +166,14 @@ function Cell({
     columnSpecificDataType: ColumnDataType | undefined;
     isLlm: boolean;
 }) {
-    const path = isLlm ? "/" : "/image-models"; // FIXME: This is a hack.
-    const [currency] = useStateItem("currency", path);
+    const [currency] = useStateItem("currency", isLlm);
     return React.useMemo(() => {
         return renderColumn(value, columnSpecificDataType, currency);
     }, [value, columnSpecificDataType, currency]);
 }
 
 function CustomTd({ children, queryIdx, columnName, isLlm }: CustomTdProps) {
-    const path = isLlm ? "/" : "/image-models"; // FIXME: This is a hack.
-    const [queries, setQueries] = useStateItem("queries", path);
+    const [queries, setQueries] = useStateItem("queries", isLlm);
 
     const updateWidth = React.useCallback(
         (newWidth: number) => {
@@ -231,15 +229,14 @@ function NameView({ name, modelId, isLlm }: { name: string; modelId: string; isL
 export default function Table({
     models,
     vendors,
-    modelType,
+    isLlm,
 }: {
     models: { id: string; name: string }[];
     vendors: Record<string, VendorInfo>;
-    modelType: "llm" | "image";
+    isLlm: boolean;
 }) {
-    const path = modelType === "llm" ? "/" : "/image-models"; // FIXME: This is a hack.
-    const [queries, setQueries] = useStateItem("queries", path);
-    const [nameFilter, setNameFilter] = useStateItem("nameFilter", path);
+    const [queries, setQueries] = useStateItem("queries", isLlm);
+    const [nameFilter, setNameFilter] = useStateItem("nameFilter", isLlm);
     const [addQueryOpen, setAddQueryOpen] = React.useState(false);
 
     const onQueryChange = React.useCallback(
@@ -293,7 +290,7 @@ export default function Table({
         CustomTd,
         nameFilter,
         NameView,
-        path === "/",
+        isLlm,
         models[0].id,
     );
 
@@ -301,7 +298,7 @@ export default function Table({
         <React.StrictMode>
             <div className="flex flex-col h-full">
                 <Toolbar
-                    modelType={modelType}
+                    isLlm={isLlm}
                     addQueryOpen={addQueryOpen}
                     setAddQueryOpen={setAddQueryOpen}
                 />
@@ -330,7 +327,7 @@ export default function Table({
                         onClose={() => setAddQueryOpen(false)}
                         firstId={models[0]?.id || ""}
                         vendors={vendors}
-                        modelType={modelType}
+                        isLlm={isLlm}
                     />
                 </div>
             </div>
