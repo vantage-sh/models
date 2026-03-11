@@ -276,7 +276,7 @@ export function useMultiColumnSync(
     nameFilter: string,
     NameComponent: (props: { name: string; modelId: string; isLlm: boolean }) => JSX.Element,
     isLlm: boolean,
-    firstId: string,
+    firstId: string
 ) {
     const [modelIdsAndNamesSorted, setModelIdsAndNamesSorted] =
         React.useState<{ id: string; name: string }[]>(modelIdsAndNames);

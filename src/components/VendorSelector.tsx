@@ -288,8 +288,7 @@ function VendorItems({
     const [disabled, setDisabled] = React.useState(true);
 
     // Use appropriate query builders based on view
-    const activeQueryBuilders =
-        isLlm ? vendorQueryBuilders : imageVendorQueryBuilders;
+    const activeQueryBuilders = isLlm ? vendorQueryBuilders : imageVendorQueryBuilders;
 
     const handleQueryBuilderChange = React.useCallback(
         (e: React.ChangeEvent<HTMLSelectElement>) => {

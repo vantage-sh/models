@@ -20,10 +20,7 @@ export default function AddButton({
     vendors: Record<string, VendorInfo>;
     isLlm: boolean;
 }) {
-    const [queries, setQueries] = useStateItem(
-        "queries",
-        isLlm
-    );
+    const [queries, setQueries] = useStateItem("queries", isLlm);
     const [activeTab, setActiveTab] = React.useState<"default" | "vendor">("default");
     const modalRef = React.useRef<HTMLDialogElement>(null);
 

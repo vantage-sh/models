@@ -40,10 +40,7 @@ export default function CurrencyPicker({
     isLlm: boolean;
     className?: string;
 }) {
-    const [currency, setCurrency] = useStateItem(
-        "currency",
-        isLlm
-    );
+    const [currency, setCurrency] = useStateItem("currency", isLlm);
     const [open, setOpen] = React.useState(false);
 
     const selectedCurrency = allCurrencies.find(([code]) => code === currency);

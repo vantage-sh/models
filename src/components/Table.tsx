@@ -291,7 +291,7 @@ export default function Table({
         nameFilter,
         NameView,
         isLlm,
-        models[0].id,
+        models[0].id
     );
 
     return (
