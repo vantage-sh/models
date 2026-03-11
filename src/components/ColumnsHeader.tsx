@@ -134,7 +134,7 @@ export default function ColumnsHeader({
     queryIdx,
     columnSpecificDataTypes,
     updateQuery,
-    initialSorting,
+    sortingState,
     onFilterChange,
     onSortChange,
     isLlm,
@@ -166,15 +166,15 @@ export default function ColumnsHeader({
 
     const setSorting = React.useCallback(
         (columnName: string, cb: (value: boolean | null) => boolean | null) => {
-            const current = initialSorting?.[0] === columnName ? initialSorting[1] : null;
+            const current = sortingState?.[1] === columnName ? sortingState[2] : null;
             const next = cb(current ?? null);
             if (next === null) {
                 onSortChange(null);
             } else {
-                onSortChange([columnName, next]);
+                onSortChange([queryIdx, columnName, next]);
             }
         },
-        [initialSorting, onSortChange]
+        [sortingState, onSortChange, queryIdx]
     );
 
     const end = React.useMemo(
@@ -227,7 +227,7 @@ export default function ColumnsHeader({
                             {column}
                         </div>
                         <SortingButtons
-                            ascending={initialSorting?.[0] === column ? initialSorting[1] : null}
+                            ascending={sortingState?.[1] === column ? sortingState[2] : null}
                             setSorting={setSorting}
                             columnName={column}
                         />

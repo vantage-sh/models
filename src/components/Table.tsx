@@ -240,7 +240,6 @@ export default function Table({
     const path = modelType === "llm" ? "/" : "/image-models"; // FIXME: This is a hack.
     const [queries, setQueries] = useStateItem("queries", path);
     const [nameFilter, setNameFilter] = useStateItem("nameFilter", path);
-    const [currentSorting, setCurrentSorting] = useStateItem("currentSorting", path);
     const [addQueryOpen, setAddQueryOpen] = React.useState(false);
 
     const onQueryChange = React.useCallback(
@@ -296,8 +295,6 @@ export default function Table({
         NameView,
         path === "/",
         models[0].id,
-        currentSorting,
-        setCurrentSorting
     );
 
     return (

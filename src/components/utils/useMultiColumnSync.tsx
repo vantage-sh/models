@@ -3,6 +3,7 @@ import type { ColumnDataType } from "../Table";
 import { loadSingleRow } from "@/src/sqlEngine";
 import checkFilters from "../filters/checkFilters";
 import sortValue from "./sortValue";
+import { useStateItem } from "@/src/state";
 
 export type ColumnsHeaderProps = {
     columns: string[] | null;
@@ -14,9 +15,9 @@ export type ColumnsHeaderProps = {
     queryIdx: number;
     columnSpecificDataTypes: Record<string, ColumnDataType>;
     updateQuery: (query: string, columnSpecificDataTypes: Record<string, ColumnDataType>) => void;
-    initialSorting: [string, boolean] | null;
+    sortingState: [number, string, boolean] | null;
     onFilterChange: (columnName: string, filter: any) => void;
-    onSortChange: (v: [string, boolean] | null) => void;
+    onSortChange: (v: [number, string, boolean] | null) => void;
     isLlm: boolean;
     firstId: string;
 };
@@ -174,8 +175,8 @@ function createSqlSyncLayer(
     columnSpecificDataTypes: Record<string, ColumnDataType>,
     filters: Record<string, any>,
     onQueryChange: (query: string, columnSpecificDataTypes: Record<string, ColumnDataType>) => void,
-    orderForColumn: [string, boolean] | null,
-    onSortChange: (v: [string, boolean] | null) => void,
+    orderForColumn: [number, string, boolean] | null,
+    setCurrentSorting: (v: [number, string, boolean] | null) => void,
     modelIds: string[],
     onFilterChange: (columnName: string, filter: any) => void,
     updateContent: (
@@ -196,7 +197,7 @@ function createSqlSyncLayer(
     if (columns === null || orderForColumn === null) {
         modelIdsSorted = modelIds;
     } else {
-        const [sortCol, ascending] = orderForColumn;
+        const [, sortCol, ascending] = orderForColumn;
         const colIdx = columns.indexOf(sortCol);
         if (colIdx === -1) {
             modelIdsSorted = modelIds;
@@ -225,9 +226,9 @@ function createSqlSyncLayer(
             queryIdx={queryIdx}
             columnSpecificDataTypes={columnSpecificDataTypes}
             updateQuery={onQueryChange}
-            initialSorting={orderForColumn}
+            sortingState={orderForColumn}
             onFilterChange={onFilterChange}
-            onSortChange={onSortChange}
+            onSortChange={setCurrentSorting}
             key={queryIdx}
             isLlm={isLlm}
             firstId={firstId}
@@ -276,16 +277,11 @@ export function useMultiColumnSync(
     NameComponent: (props: { name: string; modelId: string; isLlm: boolean }) => JSX.Element,
     isLlm: boolean,
     firstId: string,
-    initialSorting: [number, string, boolean] | null,
-    onSortChange: (v: [number, string, boolean] | null) => void
 ) {
     const [modelIdsAndNamesSorted, setModelIdsAndNamesSorted] =
         React.useState<{ id: string; name: string }[]>(modelIdsAndNames);
     const hidden = React.useMemo(() => new Map<string, number>(), []);
-    const [currentSorting, setCurrentSorting] = React.useState<[number, [string, boolean]] | null>(
-        () =>
-            initialSorting ? [initialSorting[0], [initialSorting[1], initialSorting[2]]] : null
-    );
+    const [currentSorting, setCurrentSorting] = useStateItem("currentSorting", isLlm ? "/" : "/image-models"); // FIXME: This is a hack.
     const [, setIncr] = React.useState(0);
 
     // Per-query columns — lifted out of createSqlSyncLayer so hook count is stable.
@@ -392,7 +388,7 @@ export function useMultiColumnSync(
             setModelIdsAndNamesSorted([...originalOrderRef.current]);
             return;
         }
-        const [sortQueryIdx, [sortCol, ascending]] = currentSorting;
+        const [sortQueryIdx, sortCol, ascending] = currentSorting;
         const cols = effectiveColumnsPerQueryRef.current[sortQueryIdx];
         if (!cols) return;
         const colIdx = cols.indexOf(sortCol);
@@ -446,13 +442,6 @@ export function useMultiColumnSync(
             onQueryChange(newQuery, newColumnSpecificDataTypes, idx);
         };
 
-        const setSorting = (newSorting: [string, boolean] | null) => {
-            const next: [number, [string, boolean]] | null =
-                newSorting === null ? null : [idx, newSorting];
-            setCurrentSorting(next);
-            onSortChange(next === null ? null : [next[0], next[1][0], next[1][1]]);
-        };
-
         const setFilter = (columnName: string, filter: any) => {
             onFilterChange(columnName, filter, idx);
         };
@@ -491,7 +480,7 @@ export function useMultiColumnSync(
 
                 // Recompute sort order if this query owns the current sort.
                 if (currentSorting?.[0] === idx) {
-                    const [sortCol, ascending] = currentSorting[1];
+                    const [, sortCol, ascending] = currentSorting;
                     const colIdx = (effectiveColumnsPerQuery[idx] ?? newColumns).indexOf(sortCol);
                     if (colIdx !== -1) {
                         const sortedIds = modelIds.slice().sort((a, b) => {
@@ -550,8 +539,8 @@ export function useMultiColumnSync(
             query.columnSpecificDataTypes,
             query.filters,
             onSpecificQueryChange,
-            currentSorting?.[0] === idx ? currentSorting[1] : null,
-            setSorting,
+            currentSorting?.[0] === idx ? currentSorting : null,
+            setCurrentSorting,
             modelIds,
             setFilter,
             updateContent,
