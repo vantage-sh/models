@@ -4,6 +4,7 @@ import { loadSingleRow } from "@/src/sqlEngine";
 import checkFilters from "../filters/checkFilters";
 import sortValue from "./sortValue";
 import { useStateItem } from "@/src/state";
+import useOnChangeBetweenRenders from "./useOnChangeBetweenRenders";
 
 export type ColumnsHeaderProps = {
     columns: string[] | null;
@@ -305,11 +306,31 @@ export function useMultiColumnSync(
     // Starts empty; populated synchronously on first render for all slots.
     const typeHookFactoriesRef = React.useRef<Array<() => string>>([]);
 
-    // Detect query text/slot changes and reset stale content. Runs synchronously during render
-    // (writing to refs during render is safe in React).
+    // Detect per-slot query text changes and clear stale content/types.
+    // prevQueryStringsRef holds the previous per-slot strings so we know which slots changed.
     const prevQueryStringsRef = React.useRef(queries.map((q) => q.query));
+    useOnChangeBetweenRenders(
+        queries,
+        (q) => JSON.stringify(q),
+        () => {
+            queries.forEach((q, idx) => {
+                if (
+                    prevQueryStringsRef.current[idx] !== undefined &&
+                    prevQueryStringsRef.current[idx] !== q.query &&
+                    contentPerQuery.current[idx]
+                ) {
+                    contentPerQuery.current[idx] = new Map();
+                    hiddenPerQuery.current[idx] = new Set();
+                    typeSnapshotsRef.current[idx] = "";
+                }
+            });
+            prevQueryStringsRef.current = queries.map((q) => q.query);
+        },
+        false,
+    );
+
+    // Create hook factories for new slots and initialize per-slot data structures.
     for (let idx = 0; idx < queries.length; idx++) {
-        // Create hook factory if missing (first render for all slots, or a new query added).
         if (typeHookFactoriesRef.current[idx] === undefined) {
             if (typeListenersRef.current[idx] === undefined) {
                 typeListenersRef.current[idx] = new Set();
@@ -327,25 +348,15 @@ export function useMultiColumnSync(
                     () => ""
                 );
         }
-
         if (contentPerQuery.current[idx] === undefined) {
             contentPerQuery.current[idx] = new Map();
             hiddenPerQuery.current[idx] = new Set();
-        } else if (prevQueryStringsRef.current[idx] !== queries[idx].query) {
-            // Query text changed (or index shifted after deletion) — clear stale content.
-            // Don't notify listeners here: calling setState on ColumnsHeader while Table
-            // is rendering causes a React warning. The header will pick up updated types
-            // naturally once new row data arrives.
-            contentPerQuery.current[idx] = new Map();
-            hiddenPerQuery.current[idx] = new Set();
-            typeSnapshotsRef.current[idx] = "";
         }
     }
     // Only trim content/hidden (per-query data). Leave listener/factory arrays untrimmed
     // so that unmounting ColumnsHeader components can still safely unsubscribe.
     contentPerQuery.current.length = queries.length;
     hiddenPerQuery.current.length = queries.length;
-    prevQueryStringsRef.current = queries.map((q) => q.query);
 
     const modelIdsMapping = React.useMemo(() => {
         return new Map(modelIdsAndNamesSorted.map(({ id, name }) => [id, name]));
@@ -469,10 +480,7 @@ export function useMultiColumnSync(
                         JSON.stringify(newColumns) !== JSON.stringify(currentColumns))
                 ) {
                     setColumnsPerQuery((prev) => {
-                        const next =
-                            prev.length === queries.length
-                                ? [...prev]
-                                : queries.map((_, i) => prev[i] ?? null);
+                        const next = [...prev];
                         next[idx] = newColumns;
                         return next;
                     });
