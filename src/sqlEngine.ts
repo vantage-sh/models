@@ -123,25 +123,12 @@ function asyncIfWindow<T>(fn: () => Promise<T>): Promise<T> {
     return Promise.resolve(null as T);
 }
 
-const POOL_SIZE = 4;
-
-const poolPromise = asyncIfWindow(async () => {
-    const dataDb = await loadDataDb();
-    const workers = await Promise.all(
-        Array.from({ length: POOL_SIZE }, () =>
-            createSQLWorker<Init, Payload, PayloadResult>(
-                () => new Worker(new URL("./sql/worker.ts", import.meta.url), { type: "module" }),
-                dataDb
-            )
-        )
-    );
-    let next = 0;
-    return (payload: Payload) => {
-        const worker = workers[next];
-        next = (next + 1) % POOL_SIZE;
-        return worker(payload);
-    };
-});
+const poolPromise = asyncIfWindow(async () =>
+    createSQLWorker<Init, Payload, PayloadResult>(
+        () => new Worker(new URL("./sql/worker.ts", import.meta.url), { type: "module" }),
+        await loadDataDb()
+    )
+);
 
 const queryCache = new Map<string, Map<string, { [column: string]: any }>>();
 
