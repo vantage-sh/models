@@ -6,7 +6,7 @@ export default function useOnChangeBetweenRenders<Item, CallbackValue>(
     item: Item,
     computeUniqueValue: (item: Item) => CallbackValue,
     cb: () => void,
-    runOnInitialRender: boolean,
+    runOnInitialRender: boolean
 ) {
     const valueRef = React.useRef<CallbackValue | typeof _empty>(_empty);
 

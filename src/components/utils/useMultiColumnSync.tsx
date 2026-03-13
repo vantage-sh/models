@@ -326,7 +326,7 @@ export function useMultiColumnSync(
             });
             prevQueryStringsRef.current = queries.map((q) => q.query);
         },
-        false,
+        false
     );
 
     // Create hook factories for new slots and initialize per-slot data structures.
