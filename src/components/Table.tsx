@@ -10,6 +10,7 @@ import Column from "./Column";
 import forexData from "../forex.json";
 import Link from "./Link";
 import ColumnsHeader from "./ColumnsHeader";
+import ModelTypeTabs from "./ModelTypeTabs";
 
 export const DEFAULT_COLUMN_WIDTH = 200;
 
@@ -63,12 +64,12 @@ function Toolbar({
     return (
         <div className="flex items-end justify-between px-4 py-2 border-b border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 shrink-0 gap-4">
             <div className="flex items-end gap-6">
-                {/* <div>
+                <div>
                     <span className="text-xs text-gray-500 dark:text-gray-400 block mb-1">
                         Output
                     </span>
-                    <ModelTypeTabs />
-                </div> */}
+                    <ModelTypeTabs isLlm={isLlm} />
+                </div>
                 <div>
                     <span className="text-xs text-gray-500 dark:text-gray-400 block mb-1">
                         Currency
