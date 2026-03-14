@@ -44,6 +44,7 @@ export const defaultQueries = [
     singleValue("release_date", "Release Date"),
     singleValue("max_input_tokens", "Max Input Tokens"),
     singleValue("max_output_tokens", "Max Output Tokens"),
+    singleValue("max_input_tokens + max_output_tokens", "Context Window"),
     singleValue("training_cutoff", "Training Cutoff"),
     llmAvgInputCost,
     llmAvgOutputCost,
