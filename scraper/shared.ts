@@ -22,6 +22,7 @@ export const PROVIDERS: Record<string, string> = {
     Google: "US",
     IBM: "US",
     Alibaba: "CN",
+    Microsoft: "US",
 };
 
 export function slugify(name: string, provider: string): string {
@@ -66,7 +67,8 @@ export async function addModelToFormat(
     fmt: DataFormat,
     vendorRef: string,
     regionCode: string,
-    model: ModelDefinition
+    model: ModelDefinition,
+    source: "scraped" | "hardcoded" = "scraped"
 ): Promise<void> {
     const slugifiedModel = slugify(model.name, model.provider);
     let modelEntry = fmt.models[slugifiedModel];
@@ -120,6 +122,7 @@ export async function addModelToFormat(
             latencyMs: perfMetrics?.latencyMs ?? 0,
             tokensPerSecond: perfMetrics?.tokensPerSecond ?? 0,
             lowCapacity: false,
+            priceSource: source,
         };
         modelEntry.vendors.push(vendor);
     }
@@ -142,6 +145,7 @@ export const IMAGE_PROVIDERS: Record<string, string> = {
     "Stability AI": "GB",
     Amazon: "US",
     OpenAI: "US",
+    Google: "US",
 };
 
 export type ImageModelPricing = {
@@ -171,7 +175,8 @@ export async function addImageModelToFormat(
     fmt: DataFormat,
     vendorRef: string,
     regionCode: string,
-    model: ImageModelDefinition
+    model: ImageModelDefinition,
+    source: "scraped" | "hardcoded" = "scraped"
 ): Promise<void> {
     const slugifiedModel = slugify(model.name, model.provider);
     let modelEntry = fmt.imageModels[slugifiedModel];
@@ -196,6 +201,7 @@ export async function addImageModelToFormat(
             regionPricing: {},
             latencyMs: 0,
             lowCapacity: false,
+            priceSource: source,
         };
         modelEntry.vendors.push(vendor);
     }

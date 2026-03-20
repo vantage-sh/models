@@ -12,7 +12,8 @@ function usePath() {
             window.addEventListener("popstate", onStoreChange);
             return () => window.removeEventListener("popstate", onStoreChange);
         },
-        () => window.location.pathname
+        () => window.location.pathname,
+        () => ""
     );
 }
 
