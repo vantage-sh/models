@@ -24,6 +24,7 @@ type ImageVendorModelInfo = {
     latencyMs: number;
     lowCapacity: boolean;
     priceSource: PriceSource;
+    priceVerifiedAt?: string; // ISO date string (e.g. "2026-03-20"), only set when priceSource === "hardcoded"
 };
 
 type ImageModel = {
