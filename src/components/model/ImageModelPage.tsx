@@ -53,7 +53,24 @@ export default function ImageModelPage({ model, vendors }: ImageModelPageProps) 
                 </div>
             </div>
             <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-6">
-                <h2 className="text-xl font-semibold mb-4">{model.cleanName} Pricing</h2>
+                <div className="flex items-center justify-between mb-4">
+                    <h2 className="text-xl font-semibold">{model.cleanName} Pricing</h2>
+                    {model.vendors[0]?.priceSource === "hardcoded" ? (
+                        <span
+                            className="text-xs px-2 py-1 rounded-full bg-amber-100 dark:bg-amber-900 text-amber-700 dark:text-amber-300 border border-amber-200 dark:border-amber-700"
+                            title="These prices are manually maintained. Check the vendor's pricing page for the latest."
+                        >
+                            ⚠ Manually maintained
+                        </span>
+                    ) : (
+                        <span
+                            className="text-xs px-2 py-1 rounded-full bg-green-100 dark:bg-green-900 text-green-700 dark:text-green-300 border border-green-200 dark:border-green-700"
+                            title="Prices are scraped from live sources and refreshed daily."
+                        >
+                            ↻ Live pricing
+                        </span>
+                    )}
+                </div>
                 {model.vendors
                     .filter((v) => Object.keys(v.regionPricing).length > 0)
                     .map((vendorModel) => {

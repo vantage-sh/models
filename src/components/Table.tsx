@@ -10,6 +10,7 @@ import Column from "./Column";
 import forexData from "../forex.json";
 import Link from "./Link";
 import ColumnsHeader from "./ColumnsHeader";
+import ModelTypeTabs from "./ModelTypeTabs";
 
 export const DEFAULT_COLUMN_WIDTH = 200;
 
@@ -55,20 +56,27 @@ function Toolbar({
     isLlm,
     addQueryOpen,
     setAddQueryOpen,
+    scrapedAt,
 }: {
     isLlm: boolean;
     addQueryOpen: boolean;
     setAddQueryOpen: (open: boolean) => void;
+    scrapedAt?: string;
 }) {
+    const formattedDate = scrapedAt
+        ? new Date(scrapedAt).toLocaleDateString("en-US", {
+              year: "numeric",
+              month: "short",
+              day: "numeric",
+          })
+        : null;
+
     return (
         <div className="flex items-end justify-between px-4 py-2 border-b border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 shrink-0 gap-4">
             <div className="flex items-end gap-6">
-                {/* <div>
-                    <span className="text-xs text-gray-500 dark:text-gray-400 block mb-1">
-                        Output
-                    </span>
+                <div>
                     <ModelTypeTabs />
-                </div> */}
+                </div>
                 <div>
                     <span className="text-xs text-gray-500 dark:text-gray-400 block mb-1">
                         Currency
@@ -83,7 +91,12 @@ function Toolbar({
                     Reset Columns
                 </button>
             </div>
-            <div className="flex items-center gap-1">
+            <div className="flex items-center gap-3">
+                {formattedDate && (
+                    <span className="text-xs text-gray-400 dark:text-gray-500 hidden sm:block">
+                        Prices refreshed {formattedDate}
+                    </span>
+                )}
                 <RunQueryButton />
                 <button
                     onClick={() => setAddQueryOpen(!addQueryOpen)}
@@ -230,10 +243,12 @@ export default function Table({
     models,
     vendors,
     isLlm,
+    scrapedAt,
 }: {
     models: { id: string; name: string }[];
     vendors: Record<string, VendorInfo>;
     isLlm: boolean;
+    scrapedAt?: string;
 }) {
     const [queries, setQueries] = useStateItem("queries", isLlm);
     const [nameFilter, setNameFilter] = useStateItem("nameFilter", isLlm);
@@ -301,6 +316,7 @@ export default function Table({
                     isLlm={isLlm}
                     addQueryOpen={addQueryOpen}
                     setAddQueryOpen={setAddQueryOpen}
+                    scrapedAt={scrapedAt}
                 />
                 <div className="flex flex-1 overflow-hidden">
                     <div className="flex-1 overflow-x-auto">

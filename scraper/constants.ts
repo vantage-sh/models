@@ -81,6 +81,9 @@ const MODEL_REASONING_PREFIXES = {
     "minimax-m2": false,
     // GLM
     "glm-": true,
+    // Microsoft
+    "phi-4": false,
+    phi: false,
 } as const;
 
 export function isReasoningModel(modelId: string): boolean {
@@ -320,6 +323,11 @@ export function isSelfHostableModel(modelId: string, provider: string): boolean 
         return true;
     }
 
+    if (provider === "Microsoft") {
+        // Microsoft Phi models are open-source and self-hostable
+        return true;
+    }
+
     throw new Error(
         `Unknown self-hostable status for model ID: ${modelId} with provider: ${provider}. Please update isSelfHostableModel in scraper/constants.ts.`
     );
@@ -368,6 +376,9 @@ const TRANSFORMERS_TOKENIZER_PATHS: Record<string, string> = {
     gemma: "google/gemma-2-9b-it",
     // IBM Granite
     granite: "ibm-granite/granite-3.0-8b-instruct",
+    // Microsoft Phi
+    "phi-4": "microsoft/Phi-4",
+    phi: "microsoft/Phi-4",
 };
 
 export function getTokenizerForModel(modelId: string, provider: string): Tokenizers | undefined {
