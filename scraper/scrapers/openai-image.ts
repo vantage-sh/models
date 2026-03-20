@@ -58,7 +58,7 @@ export default async function scrapeOpenaiImageData(fmt: DataFormat) {
     }
 
     for (const [_modelId, model] of Object.entries(OPENAI_IMAGE_MODELS)) {
-        await addImageModelToFormat(fmt, "openai", "global", model);
+        await addImageModelToFormat(fmt, "openai", "global", model, "hardcoded");
     }
 
     console.log(

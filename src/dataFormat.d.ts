@@ -23,6 +23,7 @@ type ImageVendorModelInfo = {
     regionPricing: { [regionCode: string]: ImagePricingTier[] };
     latencyMs: number;
     lowCapacity: boolean;
+    priceSource: PriceSource;
 };
 
 type ImageModel = {
@@ -34,6 +35,8 @@ type ImageModel = {
     supportedResolutions: ImageResolution[];
     supportsNegativePrompts: boolean;
 };
+
+type PriceSource = "scraped" | "hardcoded";
 
 type VendorModelInfo = {
     vendorRef: string;
@@ -48,6 +51,7 @@ type VendorModelInfo = {
     latencyMs: number;
     tokensPerSecond: number;
     lowCapacity: boolean;
+    priceSource: PriceSource;
 };
 
 type TiktokenTokenizer = {
@@ -100,6 +104,7 @@ type VendorInfo = {
 };
 
 export type DataFormat = {
+    scrapedAt: string; // ISO 8601 timestamp of when the scraper last ran
     vendors: Record<string, VendorInfo>;
     models: Record<string, Model>;
     imageModels: Record<string, ImageModel>;
