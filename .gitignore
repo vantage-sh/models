@@ -25,4 +25,5 @@ pnpm-debug.log*
 
 # Ignore the data JSON
 public/data.json
-src/forex.json
+# src/forex.json is intentionally committed — small, stable, needed at SSR build time
+# It is refreshed automatically on every `npm run init` run
