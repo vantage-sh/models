@@ -176,7 +176,8 @@ export async function addImageModelToFormat(
     vendorRef: string,
     regionCode: string,
     model: ImageModelDefinition,
-    source: "scraped" | "hardcoded" = "scraped"
+    source: "scraped" | "hardcoded" = "scraped",
+    priceVerifiedAt?: string // ISO date string, should be set when source === "hardcoded"
 ): Promise<void> {
     const slugifiedModel = slugify(model.name, model.provider);
     let modelEntry = fmt.imageModels[slugifiedModel];
@@ -202,6 +203,7 @@ export async function addImageModelToFormat(
             latencyMs: 0,
             lowCapacity: false,
             priceSource: source,
+            ...(priceVerifiedAt ? { priceVerifiedAt } : {}),
         };
         modelEntry.vendors.push(vendor);
     }

@@ -134,7 +134,7 @@ export const GET: APIRoute = () => {
             "INSERT INTO image_models_resolutions (model_id, resolution) VALUES (?, ?)"
         );
         const imageModelsVendorsPrep = db.prepare(
-            "INSERT INTO image_models_vendors (model_id, vendor_id, latency_ms, low_capacity) VALUES (?, ?, ?, ?)"
+            "INSERT INTO image_models_vendors (model_id, vendor_id, latency_ms, low_capacity, price_source, price_verified_at) VALUES (?, ?, ?, ?, ?, ?)"
         );
         const imageModelsVendorsPricingPrep = db.prepare(
             "INSERT INTO image_models_vendors_pricing (model_id, vendor_id, region_code, resolution, price_per_image, generation_speed_ms) VALUES (?, ?, ?, ?, ?, ?)"
@@ -157,6 +157,8 @@ export const GET: APIRoute = () => {
                     vendor.vendorRef,
                     vendor.latencyMs || null,
                     vendor.lowCapacity ? 1 : 0,
+                    vendor.priceSource,
+                    vendor.priceVerifiedAt ?? null,
                 ]);
                 for (const [regionCode, pricingTiers] of Object.entries(vendor.regionPricing)) {
                     for (const tier of pricingTiers) {

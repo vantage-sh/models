@@ -90,6 +90,8 @@ CREATE TABLE image_models_vendors (
     vendor_id TEXT NOT NULL,
     latency_ms INTEGER,
     low_capacity BOOLEAN NOT NULL DEFAULT 0,
+    price_source TEXT NOT NULL DEFAULT 'scraped',
+    price_verified_at TEXT,
     PRIMARY KEY (model_id, vendor_id),
     FOREIGN KEY (model_id) REFERENCES image_models(model_id),
     FOREIGN KEY (vendor_id) REFERENCES vendors(vendor_id)
