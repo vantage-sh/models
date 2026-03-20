@@ -65,7 +65,7 @@ export default async function scrapeAwsImageData(fmt: DataFormat) {
     }
 
     for (const [_modelId, model] of Object.entries(AWS_IMAGE_MODELS)) {
-        await addImageModelToFormat(fmt, "aws", "us-east-1", model, "hardcoded");
+        await addImageModelToFormat(fmt, "aws", "us-east-1", model, "hardcoded", "2026-03-20");
     }
 
     console.log(

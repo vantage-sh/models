@@ -6,6 +6,60 @@ type ImageModelPageProps = {
     vendors: Record<string, VendorInfo>;
 };
 
+const PRICE_STALE_DAYS = 30;
+
+function getPriceBadge(priceSource: string, priceVerifiedAt?: string) {
+    if (priceSource !== "hardcoded") {
+        return (
+            <span
+                className="text-xs px-2 py-1 rounded-full bg-green-100 dark:bg-green-900 text-green-700 dark:text-green-300 border border-green-200 dark:border-green-700"
+                title="Prices are scraped from live sources and refreshed daily."
+            >
+                ↻ Live pricing
+            </span>
+        );
+    }
+
+    if (!priceVerifiedAt) {
+        return (
+            <span
+                className="text-xs px-2 py-1 rounded-full bg-amber-100 dark:bg-amber-900 text-amber-700 dark:text-amber-300 border border-amber-200 dark:border-amber-700"
+                title="These prices are manually maintained. Check the vendor's pricing page for the latest."
+            >
+                ⚠ Manually maintained
+            </span>
+        );
+    }
+
+    const verifiedDate = new Date(priceVerifiedAt);
+    const ageInDays = Math.floor((Date.now() - verifiedDate.getTime()) / 86_400_000);
+    const formattedDate = verifiedDate.toLocaleDateString("en-US", {
+        year: "numeric",
+        month: "short",
+        day: "numeric",
+    });
+
+    if (ageInDays >= PRICE_STALE_DAYS) {
+        return (
+            <span
+                className="text-xs px-2 py-1 rounded-full bg-red-100 dark:bg-red-900 text-red-700 dark:text-red-300 border border-red-200 dark:border-red-700"
+                title={`Prices were last verified on ${formattedDate} (${ageInDays} days ago). Check the vendor's pricing page for the latest.`}
+            >
+                ⚠ Unverified ({ageInDays} days old)
+            </span>
+        );
+    }
+
+    return (
+        <span
+            className="text-xs px-2 py-1 rounded-full bg-amber-100 dark:bg-amber-900 text-amber-700 dark:text-amber-300 border border-amber-200 dark:border-amber-700"
+            title={`Prices are manually maintained and were last verified on ${formattedDate}.`}
+        >
+            ⚠ Manually maintained · Verified {formattedDate}
+        </span>
+    );
+}
+
 export default function ImageModelPage({ model, vendors }: ImageModelPageProps) {
     return (
         <div className="max-w-4xl mx-auto p-6">
@@ -55,20 +109,9 @@ export default function ImageModelPage({ model, vendors }: ImageModelPageProps) 
             <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-6">
                 <div className="flex items-center justify-between mb-4">
                     <h2 className="text-xl font-semibold">{model.cleanName} Pricing</h2>
-                    {model.vendors[0]?.priceSource === "hardcoded" ? (
-                        <span
-                            className="text-xs px-2 py-1 rounded-full bg-amber-100 dark:bg-amber-900 text-amber-700 dark:text-amber-300 border border-amber-200 dark:border-amber-700"
-                            title="These prices are manually maintained. Check the vendor's pricing page for the latest."
-                        >
-                            ⚠ Manually maintained
-                        </span>
-                    ) : (
-                        <span
-                            className="text-xs px-2 py-1 rounded-full bg-green-100 dark:bg-green-900 text-green-700 dark:text-green-300 border border-green-200 dark:border-green-700"
-                            title="Prices are scraped from live sources and refreshed daily."
-                        >
-                            ↻ Live pricing
-                        </span>
+                    {getPriceBadge(
+                        model.vendors[0]?.priceSource,
+                        model.vendors[0]?.priceVerifiedAt
                     )}
                 </div>
                 {model.vendors

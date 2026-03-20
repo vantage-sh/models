@@ -34,7 +34,7 @@ export default async function scrapeGcpImageData(fmt: DataFormat) {
     }
 
     for (const [_modelId, model] of Object.entries(GCP_IMAGE_MODELS)) {
-        await addImageModelToFormat(fmt, "gcp", "us-central1", model, "hardcoded");
+        await addImageModelToFormat(fmt, "gcp", "us-central1", model, "hardcoded", "2026-03-20");
     }
 
     console.log(
