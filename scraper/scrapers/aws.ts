@@ -91,6 +91,7 @@ async function processPriceDimension(
             latencyMs: perfMetrics?.latencyMs ?? 0,
             tokensPerSecond: perfMetrics?.tokensPerSecond ?? 0,
             lowCapacity: false,
+            priceSource: "scraped",
         };
         modelEntry.vendors.push(vendor);
     }
