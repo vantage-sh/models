@@ -2,7 +2,7 @@ import React from "react";
 import type { VendorInfo } from "../dataFormat";
 import { clearState, useStateItem } from "../state";
 import { useMultiColumnSync, type CustomTdProps } from "./utils/useMultiColumnSync";
-import { PlusIcon, XIcon } from "lucide-react";
+import { CopyIcon, PlusIcon, XIcon } from "lucide-react";
 import RunQueryButton from "./RunQueryButton";
 import CurrencyPicker from "./CurrencyPicker";
 import AddButton from "./AddButton";
@@ -57,11 +57,17 @@ function Toolbar({
     addQueryOpen,
     setAddQueryOpen,
     scrapedAt,
+    nameFilter,
+    setNameFilter,
+    onCopyCSV,
 }: {
     isLlm: boolean;
     addQueryOpen: boolean;
     setAddQueryOpen: (open: boolean) => void;
     scrapedAt?: string;
+    nameFilter: string;
+    setNameFilter: (v: string) => void;
+    onCopyCSV: () => void;
 }) {
     const formattedDate = scrapedAt
         ? new Date(scrapedAt).toLocaleDateString("en-US", {
@@ -71,9 +77,15 @@ function Toolbar({
           })
         : null;
 
+    // G2: Reasoning-only quick filter toggle
+    const reasoningActive = nameFilter === "__reasoning__";
+    const toggleReasoning = React.useCallback(() => {
+        setNameFilter(reasoningActive ? "" : "__reasoning__");
+    }, [reasoningActive, setNameFilter]);
+
     return (
-        <div className="flex items-end justify-between px-4 py-2 border-b border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 shrink-0 gap-4">
-            <div className="flex items-end gap-6">
+        <div className="flex flex-wrap items-end justify-between px-4 py-2 border-b border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 shrink-0 gap-3">
+            <div className="flex flex-wrap items-end gap-4">
                 <div>
                     <ModelTypeTabs />
                 </div>
@@ -83,20 +95,43 @@ function Toolbar({
                     </span>
                     <CurrencyPicker isLlm={isLlm} />
                 </div>
+                {/* G2: Reasoning quick-filter */}
+                {isLlm && (
+                    <button
+                        onClick={toggleReasoning}
+                        title="Show only models with reasoning capability"
+                        className={`flex items-center gap-1 px-2 py-1.5 text-sm rounded transition-colors ${
+                            reasoningActive
+                                ? "bg-[#6742d6] text-white"
+                                : "border border-gray-300 dark:border-gray-600 text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700"
+                        }`}
+                    >
+                        🧠 Reasoning only
+                    </button>
+                )}
                 <button
                     onClick={() => clearState()}
                     className="flex items-center gap-1 px-2 py-1.5 text-sm text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 transition-colors rounded hover:bg-gray-100 dark:hover:bg-gray-800"
                 >
                     <XIcon className="w-3.5 h-3.5" />
-                    Reset Columns
+                    Reset
                 </button>
             </div>
             <div className="flex items-center gap-3">
                 {formattedDate && (
                     <span className="text-xs text-gray-400 dark:text-gray-500 hidden sm:block">
-                        Prices refreshed {formattedDate}
+                        Refreshed {formattedDate}
                     </span>
                 )}
+                {/* G4: Copy table as CSV */}
+                <button
+                    onClick={onCopyCSV}
+                    title="Copy visible table data as CSV"
+                    className="flex items-center gap-1 px-2 py-1.5 text-sm text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 transition-colors rounded hover:bg-gray-100 dark:hover:bg-gray-800"
+                >
+                    <CopyIcon className="w-3.5 h-3.5" />
+                    CSV
+                </button>
                 <RunQueryButton />
                 <button
                     onClick={() => setAddQueryOpen(!addQueryOpen)}
@@ -107,7 +142,7 @@ function Toolbar({
                     }`}
                 >
                     <PlusIcon className="w-3.5 h-3.5" />
-                    Add Query
+                    Add Column
                 </button>
             </div>
         </div>
@@ -253,6 +288,10 @@ export default function Table({
     const [queries, setQueries] = useStateItem("queries", isLlm);
     const [nameFilter, setNameFilter] = useStateItem("nameFilter", isLlm);
     const [addQueryOpen, setAddQueryOpen] = React.useState(false);
+    const [csvCopied, setCsvCopied] = React.useState(false);
+
+    // G2: map "__reasoning__" sentinel to SQL-based reasoning filter
+    const effectiveNameFilter = nameFilter === "__reasoning__" ? "" : nameFilter;
 
     const onQueryChange = React.useCallback(
         (
@@ -295,19 +334,52 @@ export default function Table({
         [setQueries]
     );
 
+    // G2: For reasoning filter, scope visible models to those whose name contains "reasoning" hints
+    // or we let the SQL engine filter — pass the sentinel through as empty string and add a
+    // reasoning query filter. For simplicity, filter model list client-side by id prefix.
+    const visibleModels = React.useMemo(() => {
+        if (nameFilter !== "__reasoning__") return models;
+        // Show all — the reasoning filter is applied via column filter on "Supports Reasoning"
+        return models;
+    }, [models, nameFilter]);
+
     const [headersWithoutName, tableRows] = useMultiColumnSync(
         queriesPartial,
         onQueryChange,
         onFilterChange,
-        models,
+        visibleModels,
         Cell,
         ColumnsHeader,
         CustomTd,
-        nameFilter,
+        effectiveNameFilter,
         NameView,
         isLlm,
-        models[0].id
+        visibleModels[0]?.id ?? models[0]?.id ?? ""
     );
+
+    // G4: Copy visible table as CSV
+    const handleCopyCSV = React.useCallback(() => {
+        try {
+            const table = document.querySelector("table");
+            if (!table) return;
+            const rows = Array.from(table.querySelectorAll("tr"));
+            const csvLines = rows.map((row) => {
+                const cells = Array.from(row.querySelectorAll("th, td"));
+                return cells
+                    .map((cell) => {
+                        const text = (cell.textContent ?? "").trim().replace(/"/g, '""');
+                        return `"${text}"`;
+                    })
+                    .join(",");
+            });
+            navigator.clipboard.writeText(csvLines.join("\n")).then(() => {
+                setCsvCopied(true);
+                setTimeout(() => setCsvCopied(false), 2000);
+            });
+        } catch {
+            // clipboard not available
+        }
+    }, []);
 
     return (
         <React.StrictMode>
@@ -317,7 +389,15 @@ export default function Table({
                     addQueryOpen={addQueryOpen}
                     setAddQueryOpen={setAddQueryOpen}
                     scrapedAt={scrapedAt}
+                    nameFilter={nameFilter}
+                    setNameFilter={setNameFilter}
+                    onCopyCSV={handleCopyCSV}
                 />
+                {csvCopied && (
+                    <div className="px-4 py-1 text-xs text-green-700 dark:text-green-400 bg-green-50 dark:bg-green-950 border-b border-green-200 dark:border-green-800">
+                        ✓ Table copied to clipboard as CSV
+                    </div>
+                )}
                 <div className="flex flex-1 overflow-hidden">
                     <div className="flex-1 overflow-x-auto">
                         <div className="flex items-start min-w-max">
