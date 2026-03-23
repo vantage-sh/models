@@ -84,25 +84,48 @@ export default function PricingCalculator({ model, vendors, isLlm }: PricingCalc
 
     const priceSource = selectedVendorModel?.priceSource;
 
+    // G5: price verified date
+    const priceVerifiedAt = selectedVendorModel?.priceSource === "hardcoded"
+        ? (selectedVendorModel as any).priceVerifiedAt as string | undefined
+        : undefined;
+
+    // G7: Token load presets
+    const TOKEN_PRESETS = [
+        { label: "1K", input: 1_000, output: 500 },
+        { label: "10K", input: 10_000, output: 3_000 },
+        { label: "100K", input: 100_000, output: 30_000 },
+        { label: "1M", input: 1_000_000, output: 300_000 },
+    ] as const;
+
     return (
         <div className="p-6 border dark:border-gray-700 rounded-lg bg-white dark:bg-gray-800 shadow-sm">
             <div className="flex items-center justify-between mb-4">
                 <h2 className="text-xl font-semibold">{model.cleanName} Pricing</h2>
-                {priceSource === "hardcoded" ? (
-                    <span
-                        className="text-xs px-2 py-1 rounded-full bg-amber-100 dark:bg-amber-900 text-amber-700 dark:text-amber-300 border border-amber-200 dark:border-amber-700"
-                        title="These prices are manually maintained. Check the vendor's pricing page for the latest."
-                    >
-                        ⚠ Manually maintained
-                    </span>
-                ) : (
-                    <span
-                        className="text-xs px-2 py-1 rounded-full bg-green-100 dark:bg-green-900 text-green-700 dark:text-green-300 border border-green-200 dark:border-green-700"
-                        title="Prices are scraped from live sources and refreshed daily."
-                    >
-                        ↻ Live pricing
-                    </span>
-                )}
+                <div className="flex items-center gap-2">
+                    {priceVerifiedAt && (
+                        <span
+                            className="text-xs px-2 py-1 rounded-full bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300 border border-gray-200 dark:border-gray-600"
+                            title={`Prices manually verified on ${priceVerifiedAt}`}
+                        >
+                            Verified {priceVerifiedAt}
+                        </span>
+                    )}
+                    {priceSource === "hardcoded" ? (
+                        <span
+                            className="text-xs px-2 py-1 rounded-full bg-amber-100 dark:bg-amber-900 text-amber-700 dark:text-amber-300 border border-amber-200 dark:border-amber-700"
+                            title="These prices are manually maintained. Check the vendor's pricing page for the latest."
+                        >
+                            ⚠ Manually maintained
+                        </span>
+                    ) : (
+                        <span
+                            className="text-xs px-2 py-1 rounded-full bg-green-100 dark:bg-green-900 text-green-700 dark:text-green-300 border border-green-200 dark:border-green-700"
+                            title="Prices are scraped from live sources and refreshed daily."
+                        >
+                            ↻ Live pricing
+                        </span>
+                    )}
+                </div>
             </div>
             <div className="flex items-center gap-4 mb-6">
                 <div>
@@ -157,6 +180,24 @@ export default function PricingCalculator({ model, vendors, isLlm }: PricingCalc
             <div className="mb-6">
                 <label className="block text-sm font-medium mb-1">Currency</label>
                 <CurrencyPicker isLlm={isLlm} className="w-full" />
+            </div>
+
+            {/* G7: Token load presets */}
+            <div className="mb-3">
+                <span className="text-xs text-gray-500 dark:text-gray-400 mr-2">Quick load:</span>
+                {TOKEN_PRESETS.map((preset) => (
+                    <button
+                        key={preset.label}
+                        onClick={() => {
+                            setInputTokens(preset.input);
+                            setOutputTokens(preset.output);
+                        }}
+                        className="mr-1 px-2 py-0.5 text-xs border border-gray-300 dark:border-gray-600 rounded hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
+                        title={`${preset.input.toLocaleString()} input / ${preset.output.toLocaleString()} output tokens`}
+                    >
+                        {preset.label}
+                    </button>
+                ))}
             </div>
 
             <div className="grid grid-cols-2 gap-4">
