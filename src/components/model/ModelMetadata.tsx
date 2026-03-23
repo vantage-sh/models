@@ -1,6 +1,17 @@
 import type { Model } from "../../dataFormat";
 
-function MetadataItem({ label, value, href }: { label: string; value: string; href?: string }) {
+// G6: MetadataItem with optional tooltip for benchmark explanations
+function MetadataItem({
+    label,
+    value,
+    href,
+    tooltip,
+}: {
+    label: string;
+    value: string;
+    href?: string;
+    tooltip?: string;
+}) {
     return (
         <div className="flex flex-col">
             {href ? (
@@ -8,12 +19,18 @@ function MetadataItem({ label, value, href }: { label: string; value: string; hr
                     href={href}
                     target="_blank"
                     rel="noopener noreferrer"
+                    title={tooltip}
                     className="text-sm text-blue-600 dark:text-blue-400 hover:underline"
                 >
-                    {label}
+                    {label} ↗
                 </a>
             ) : (
-                <span className="text-sm text-gray-500 dark:text-gray-400">{label}</span>
+                <span
+                    className="text-sm text-gray-500 dark:text-gray-400"
+                    title={tooltip}
+                >
+                    {label}{tooltip ? " ⓘ" : ""}
+                </span>
             )}
             <span className="font-medium">{value}</span>
         </div>
@@ -68,6 +85,7 @@ export default function ModelMetadata({ model }: { model: Model }) {
                     label="Humanity's Last Exam"
                     value={`${model.humanitysLastExamPercentage.toFixed(1)}%`}
                     href="https://lastexam.ai/"
+                    tooltip="HLE: Expert-level academic exam questions across 100+ subjects. Higher % = stronger broad reasoning."
                 />
             )}
             {model.sweBenchResolvedPercentage !== undefined && (
@@ -75,6 +93,7 @@ export default function ModelMetadata({ model }: { model: Model }) {
                     label="SWE-Bench Resolved"
                     value={`${model.sweBenchResolvedPercentage.toFixed(1)}%`}
                     href="https://www.swebench.com/"
+                    tooltip="SWE-Bench: Real GitHub issues resolved by the model autonomously. Higher % = better software engineering capability."
                 />
             )}
             {model.skatebenchScore !== undefined && (
@@ -82,6 +101,7 @@ export default function ModelMetadata({ model }: { model: Model }) {
                     label="SkateBench Score"
                     value={`${model.skatebenchScore.toFixed(2)}%`}
                     href="https://skatebench.t3.gg/"
+                    tooltip="SkateBench: Measures practical coding task completion. Focuses on real-world dev tasks."
                 />
             )}
         </div>

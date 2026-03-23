@@ -59,10 +59,20 @@ export default function ModelPage({ modelId, model, vendors, description, isLlm 
 
     return (
         <div className="max-w-4xl mx-auto p-6">
-            <div className="mb-4">
+            <div className="mb-4 flex items-center justify-between">
                 <Link href={`${import.meta.env.PUBLIC_BASE_PATH ?? ""}/`}>
                     &larr; Back to all models
                 </Link>
+                {/* G10: FiceCal FinOps deep-link */}
+                <a
+                    href={`https://duksh.github.io/ficecal/#calculator`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium rounded border border-[#6742d6] text-[#6742d6] hover:bg-[#6742d6] hover:text-white transition-colors"
+                    title="Open FiceCal FinOps dashboard for full AI cost intelligence"
+                >
+                    💰 Estimate in FiceCal ↗
+                </a>
             </div>
             <ModelHeader model={model} description={description} />
             <ModelMetadata model={model} />
