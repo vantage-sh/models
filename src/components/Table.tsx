@@ -77,7 +77,7 @@ function Toolbar({
           })
         : null;
 
-    // G2: Reasoning-only quick filter toggle
+    // Reasoning-only quick filter toggle
     const reasoningActive = nameFilter === "__reasoning__";
     const toggleReasoning = React.useCallback(() => {
         setNameFilter(reasoningActive ? "" : "__reasoning__");
@@ -290,7 +290,7 @@ export default function Table({
     const [addQueryOpen, setAddQueryOpen] = React.useState(false);
     const [csvCopied, setCsvCopied] = React.useState(false);
 
-    // G2: map "__reasoning__" sentinel to SQL-based reasoning filter
+    // map "__reasoning__" sentinel to SQL-based reasoning filter
     const effectiveNameFilter = nameFilter === "__reasoning__" ? "" : nameFilter;
 
     const onQueryChange = React.useCallback(
@@ -334,7 +334,7 @@ export default function Table({
         [setQueries]
     );
 
-    // G2: For reasoning filter, scope visible models to those whose name contains "reasoning" hints
+    // For reasoning filter, scope visible models to those whose name contains "reasoning" hints
     // or we let the SQL engine filter — pass the sentinel through as empty string and add a
     // reasoning query filter. For simplicity, filter model list client-side by id prefix.
     const visibleModels = React.useMemo(() => {
@@ -357,7 +357,7 @@ export default function Table({
         visibleModels[0]?.id ?? models[0]?.id ?? ""
     );
 
-    // G4: Copy visible table as CSV
+    // Copy visible table as CSV
     const handleCopyCSV = React.useCallback(() => {
         try {
             const table = document.querySelector("table");

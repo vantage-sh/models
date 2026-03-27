@@ -1,6 +1,6 @@
 import type { Model } from "../../dataFormat";
 
-// G6: MetadataItem with optional tooltip for benchmark explanations
+// MetadataItem with optional tooltip for benchmark explanations
 function MetadataItem({
     label,
     value,

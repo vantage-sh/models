@@ -18,7 +18,7 @@ const llmVendors = {
     columnExplicitlySetDataTypes: {},
 };
 
-// G1: Default to per-million cost columns (standard FinOps / LLM pricing unit)
+// Default to per-million cost columns (standard FinOps / LLM pricing unit)
 const llmAvgInputCostPerM = {
     name: "Avg Cost / 1M Input Tokens",
     query: `SELECT AVG(input_token_cost * 1000000) AS \`Avg Cost / 1M Input Tokens\`
