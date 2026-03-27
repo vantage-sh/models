@@ -2,7 +2,7 @@ import React from "react";
 import type { VendorInfo } from "../dataFormat";
 import { clearState, useStateItem } from "../state";
 import { useMultiColumnSync, type CustomTdProps } from "./utils/useMultiColumnSync";
-import { CopyIcon, PlusIcon, XIcon } from "lucide-react";
+import { PlusIcon, XIcon } from "lucide-react";
 import RunQueryButton from "./RunQueryButton";
 import CurrencyPicker from "./CurrencyPicker";
 import AddButton from "./AddButton";
@@ -10,7 +10,6 @@ import Column from "./Column";
 import forexData from "../forex.json";
 import Link from "./Link";
 import ColumnsHeader from "./ColumnsHeader";
-import ModelTypeTabs from "./ModelTypeTabs";
 
 export const DEFAULT_COLUMN_WIDTH = 200;
 
@@ -57,13 +56,11 @@ function Toolbar({
     addQueryOpen,
     setAddQueryOpen,
     scrapedAt,
-    onCopyCSV,
 }: {
     isLlm: boolean;
     addQueryOpen: boolean;
     setAddQueryOpen: (open: boolean) => void;
     scrapedAt?: string;
-    onCopyCSV: () => void;
 }) {
     const formattedDate = scrapedAt
         ? new Date(scrapedAt).toLocaleDateString("en-US", {
@@ -99,15 +96,6 @@ function Toolbar({
                         Refreshed {formattedDate}
                     </span>
                 )}
-                {/* Copy table as CSV */}
-                <button
-                    onClick={onCopyCSV}
-                    title="Copy visible table data as CSV"
-                    className="flex items-center gap-1 px-2 py-1.5 text-sm text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 transition-colors rounded hover:bg-gray-100 dark:hover:bg-gray-800"
-                >
-                    <CopyIcon className="w-3.5 h-3.5" />
-                    CSV
-                </button>
                 <RunQueryButton />
                 <button
                     onClick={() => setAddQueryOpen(!addQueryOpen)}
@@ -321,30 +309,6 @@ export default function Table({
         models[0]?.id
     );
 
-    // Copy visible table as CSV
-    const handleCopyCSV = React.useCallback(() => {
-        try {
-            const table = document.querySelector("table");
-            if (!table) return;
-            const rows = Array.from(table.querySelectorAll("tr"));
-            const csvLines = rows.map((row) => {
-                const cells = Array.from(row.querySelectorAll("th, td"));
-                return cells
-                    .map((cell) => {
-                        const text = (cell.textContent ?? "").trim().replace(/"/g, '""');
-                        return `"${text}"`;
-                    })
-                    .join(",");
-            });
-            navigator.clipboard.writeText(csvLines.join("\n")).then(() => {
-                setCsvCopied(true);
-                setTimeout(() => setCsvCopied(false), 2000);
-            });
-        } catch {
-            // clipboard not available
-        }
-    }, []);
-
     return (
         <React.StrictMode>
             <div className="flex flex-col h-full">
@@ -353,7 +317,6 @@ export default function Table({
                     addQueryOpen={addQueryOpen}
                     setAddQueryOpen={setAddQueryOpen}
                     scrapedAt={scrapedAt}
-                    onCopyCSV={handleCopyCSV}
                 />
                 {csvCopied && (
                     <div className="px-4 py-1 text-xs text-green-700 dark:text-green-400 bg-green-50 dark:bg-green-950 border-b border-green-200 dark:border-green-800">
