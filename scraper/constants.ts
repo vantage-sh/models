@@ -142,7 +142,7 @@ export function getReasoningTier(modelId: string): ReasoningTier {
 
 // Model metadata: training cutoff dates
 // Format: "YYYY-MM" or "YYYY-MM-DD" for more precision
-const MODEL_TRAINING_CUTOFFS: Record<string, string | null> = {
+const MODEL_TRAINING_CUTOFFS: Record<string, string> = {
     // OpenAI
     "gpt-5": "2024-12",
     "gpt-4-1": "2024-06",
