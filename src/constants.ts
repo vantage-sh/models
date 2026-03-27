@@ -57,6 +57,7 @@ export const defaultQueries = [
     singleValue("reasoning_tier", "Reasoning Tier"),
     singleValue("humanitys_last_exam_percentage", "Humanity's Last Exam %"),
     singleValue("swe_bench_resolved_percentage", "SWE-Bench Resolved %"),
+    singleValue("skatebench_score", "SkateBench Score"),
     singleValue("selfhostable", "Self-hostable", "boolean"),
 ];
 
