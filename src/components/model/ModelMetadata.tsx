@@ -25,11 +25,9 @@ function MetadataItem({
                     {label} ↗
                 </a>
             ) : (
-                <span
-                    className="text-sm text-gray-500 dark:text-gray-400"
-                    title={tooltip}
-                >
-                    {label}{tooltip ? " ⓘ" : ""}
+                <span className="text-sm text-gray-500 dark:text-gray-400" title={tooltip}>
+                    {label}
+                    {tooltip ? " ⓘ" : ""}
                 </span>
             )}
             <span className="font-medium">{value}</span>
