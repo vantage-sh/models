@@ -39,7 +39,7 @@ const llmAvgOutputCostPerM = {
     },
 };
 
-// G3: Country of origin column
+// Country of origin column
 const llmCountry = singleValue("company_country_code", "Country", "country");
 
 export const defaultQueries = [
