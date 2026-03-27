@@ -57,16 +57,12 @@ function Toolbar({
     addQueryOpen,
     setAddQueryOpen,
     scrapedAt,
-    nameFilter,
-    setNameFilter,
     onCopyCSV,
 }: {
     isLlm: boolean;
     addQueryOpen: boolean;
     setAddQueryOpen: (open: boolean) => void;
     scrapedAt?: string;
-    nameFilter: string;
-    setNameFilter: (v: string) => void;
     onCopyCSV: () => void;
 }) {
     const formattedDate = scrapedAt
@@ -76,12 +72,6 @@ function Toolbar({
               day: "numeric",
           })
         : null;
-
-    // Reasoning-only quick filter toggle
-    const reasoningActive = nameFilter === "__reasoning__";
-    const toggleReasoning = React.useCallback(() => {
-        setNameFilter(reasoningActive ? "" : "__reasoning__");
-    }, [reasoningActive, setNameFilter]);
 
     return (
         <div className="flex flex-wrap items-end justify-between px-4 py-2 border-b border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 shrink-0 gap-3">
@@ -95,20 +85,6 @@ function Toolbar({
                     </span>
                     <CurrencyPicker isLlm={isLlm} />
                 </div>
-                {/* G2: Reasoning quick-filter */}
-                {isLlm && (
-                    <button
-                        onClick={toggleReasoning}
-                        title="Show only models with reasoning capability"
-                        className={`flex items-center gap-1 px-2 py-1.5 text-sm rounded transition-colors ${
-                            reasoningActive
-                                ? "bg-[#6742d6] text-white"
-                                : "border border-gray-300 dark:border-gray-600 text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700"
-                        }`}
-                    >
-                        🧠 Reasoning only
-                    </button>
-                )}
                 <button
                     onClick={() => clearState()}
                     className="flex items-center gap-1 px-2 py-1.5 text-sm text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 transition-colors rounded hover:bg-gray-100 dark:hover:bg-gray-800"
@@ -123,7 +99,7 @@ function Toolbar({
                         Refreshed {formattedDate}
                     </span>
                 )}
-                {/* G4: Copy table as CSV */}
+                {/* Copy table as CSV */}
                 <button
                     onClick={onCopyCSV}
                     title="Copy visible table data as CSV"
@@ -142,7 +118,7 @@ function Toolbar({
                     }`}
                 >
                     <PlusIcon className="w-3.5 h-3.5" />
-                    Add Column
+                    Add Query
                 </button>
             </div>
         </div>
@@ -290,9 +266,6 @@ export default function Table({
     const [addQueryOpen, setAddQueryOpen] = React.useState(false);
     const [csvCopied, setCsvCopied] = React.useState(false);
 
-    // map "__reasoning__" sentinel to SQL-based reasoning filter
-    const effectiveNameFilter = nameFilter === "__reasoning__" ? "" : nameFilter;
-
     const onQueryChange = React.useCallback(
         (
             query: string,
@@ -334,27 +307,18 @@ export default function Table({
         [setQueries]
     );
 
-    // For reasoning filter, scope visible models to those whose name contains "reasoning" hints
-    // or we let the SQL engine filter — pass the sentinel through as empty string and add a
-    // reasoning query filter. For simplicity, filter model list client-side by id prefix.
-    const visibleModels = React.useMemo(() => {
-        if (nameFilter !== "__reasoning__") return models;
-        // Show all — the reasoning filter is applied via column filter on "Supports Reasoning"
-        return models;
-    }, [models, nameFilter]);
-
     const [headersWithoutName, tableRows] = useMultiColumnSync(
         queriesPartial,
         onQueryChange,
         onFilterChange,
-        visibleModels,
+        models,
         Cell,
         ColumnsHeader,
         CustomTd,
-        effectiveNameFilter,
+        nameFilter,
         NameView,
         isLlm,
-        visibleModels[0]?.id ?? models[0]?.id ?? ""
+        models[0]?.id
     );
 
     // Copy visible table as CSV
@@ -389,8 +353,6 @@ export default function Table({
                     addQueryOpen={addQueryOpen}
                     setAddQueryOpen={setAddQueryOpen}
                     scrapedAt={scrapedAt}
-                    nameFilter={nameFilter}
-                    setNameFilter={setNameFilter}
                     onCopyCSV={handleCopyCSV}
                 />
                 {csvCopied && (
