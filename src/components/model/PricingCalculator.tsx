@@ -85,9 +85,10 @@ export default function PricingCalculator({ model, vendors, isLlm }: PricingCalc
     const priceSource = selectedVendorModel?.priceSource;
 
     // price verified date
-    const priceVerifiedAt = selectedVendorModel?.priceSource === "hardcoded"
-        ? (selectedVendorModel as any).priceVerifiedAt as string | undefined
-        : undefined;
+    const priceVerifiedAt =
+        selectedVendorModel?.priceSource === "hardcoded"
+            ? ((selectedVendorModel as any).priceVerifiedAt as string | undefined)
+            : undefined;
 
     // Token load presets
     const TOKEN_PRESETS = [
