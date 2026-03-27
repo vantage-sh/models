@@ -84,6 +84,8 @@ const MODEL_REASONING_PREFIXES = {
     // Microsoft
     "phi-4": false,
     phi: false,
+    // Writer
+    "writer-palmyra": true,
 } as const;
 
 export function isReasoningModel(modelId: string): boolean {
@@ -139,7 +141,7 @@ export function getReasoningTier(modelId: string): ReasoningTier {
 
 // Model metadata: training cutoff dates
 // Format: "YYYY-MM" or "YYYY-MM-DD" for more precision
-const MODEL_TRAINING_CUTOFFS: Record<string, string> = {
+const MODEL_TRAINING_CUTOFFS: Record<string, string | null> = {
     // OpenAI
     "gpt-5": "2024-12",
     "gpt-4-1": "2024-06",
@@ -326,6 +328,11 @@ export function isSelfHostableModel(modelId: string, provider: string): boolean 
     if (provider === "Microsoft") {
         // Microsoft Phi models are open-source and self-hostable
         return true;
+    }
+
+    if (provider === "Writer") {
+        // Writer Palmyra model is not self-hostable
+        return false;
     }
 
     throw new Error(
