@@ -43,6 +43,7 @@ const PROVIDERS = {
     "Minimax AI": "CN",
     "Moonshot AI": "CN",
     "Z AI": "CN",
+    Writer: "US",
 } as const;
 
 function providerToCountryCode(provider: string): string {
