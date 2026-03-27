@@ -39,12 +39,8 @@ const llmAvgOutputCostPerM = {
     },
 };
 
-// Country of origin column
-const llmCountry = singleValue("company_country_code", "Country", "country");
-
 export const defaultQueries = [
     singleValue("company", "Brand"),
-    llmCountry,
     llmVendors,
     singleValue("release_date", "Release Date"),
     singleValue("max_input_tokens", "Max Input Tokens"),
