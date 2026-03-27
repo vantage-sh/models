@@ -77,6 +77,7 @@ const MODEL_REASONING_PREFIXES = {
     qwen3: true,
     // Nvidia
     "nvidia-nemotron-nano": true,
+    "nvidia-nemotron-3-super": true,
     // Minimax AI
     "minimax-m2": false,
     // GLM
