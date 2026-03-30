@@ -15,3 +15,23 @@ jobs:
               run: |
                 vercel teams switch vantage-sh --token=${{ secrets.VERCEL_TOKEN }}
                 vercel redeploy https://models-vantage-sh.vercel.app --token=${{ secrets.VERCEL_TOKEN }} --scope=vantage-sh
+
+            - name: Success Slack Notify
+              if: ${{ success() }}
+              uses: slackapi/slack-github-action@v1.16.0
+              with:
+                  payload: '{"blocks":[{"type":"section","text":{"type":"mrkdwn","text":":capybara-drink: **${{ env.SERVICE }}** synced. ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"}}]}'
+              env:
+                  SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
+                  SLACK_WEBHOOK_TYPE: INCOMING_WEBHOOK
+                  SERVICE: models
+
+            - name: Failure Slack Notify
+              if: ${{ failure() }}
+              uses: slackapi/slack-github-action@v1.16.0
+              with:
+                  payload: '{"blocks":[{"type":"section","text":{"type":"mrkdwn","text":":see_no_evil: **${{ env.SERVICE }}** wasn''t synced. ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"}}]}'
+              env:
+                  SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
+                  SLACK_WEBHOOK_TYPE: INCOMING_WEBHOOK
+                  SERVICE: models
