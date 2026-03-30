@@ -1,30 +1,41 @@
-import type { DataFormat } from "@/src/dataFormat";
+import type { DataFormat, ImageResolution } from "@/src/dataFormat";
 import { addImageModelToFormat, type ImageModelDefinition } from "../shared";
+import { fetchLiteLLMPricing } from "../litellm";
 
-// GCP Vertex AI image generation model pricing
-// Prices are per image
-// Source: https://cloud.google.com/vertex-ai/generative-ai/pricing
-const GCP_IMAGE_MODELS: Record<string, ImageModelDefinition> = {
-    "imagen-3.0-generate": {
-        name: "Imagen 3",
-        provider: "Google",
-        supportedResolutions: ["1024x1024"],
-        supportsNegativePrompts: false,
-        pricing: [{ resolution: "1024x1024", pricePerImage: 0.04 }],
-    },
-    "imagen-3.0-fast-generate": {
-        name: "Imagen 3 Fast",
-        provider: "Google",
-        supportedResolutions: ["1024x1024"],
-        supportsNegativePrompts: false,
-        pricing: [{ resolution: "1024x1024", pricePerImage: 0.02 }],
-    },
+// Non-pricing metadata keyed by LiteLLM model ID (vertex_ai/* prefix stripped)
+const MODEL_META: Record<
+    string,
+    { name: string; supportsNegativePrompts: boolean; supportedResolutions: ImageResolution[] }
+> = {
     "imagegeneration@006": {
         name: "Imagen 2",
-        provider: "Google",
-        supportedResolutions: ["1024x1024"],
         supportsNegativePrompts: true,
-        pricing: [{ resolution: "1024x1024", pricePerImage: 0.02 }],
+        supportedResolutions: ["1024x1024"],
+    },
+    "imagen-3.0-generate-001": {
+        name: "Imagen 3",
+        supportsNegativePrompts: false,
+        supportedResolutions: ["1024x1024"],
+    },
+    "imagen-3.0-fast-generate-001": {
+        name: "Imagen 3 Fast",
+        supportsNegativePrompts: false,
+        supportedResolutions: ["1024x1024"],
+    },
+    "imagen-4.0-generate-001": {
+        name: "Imagen 4",
+        supportsNegativePrompts: false,
+        supportedResolutions: ["1024x1024"],
+    },
+    "imagen-4.0-fast-generate-001": {
+        name: "Imagen 4 Fast",
+        supportsNegativePrompts: false,
+        supportedResolutions: ["1024x1024"],
+    },
+    "imagen-4.0-ultra-generate-001": {
+        name: "Imagen 4 Ultra",
+        supportsNegativePrompts: false,
+        supportedResolutions: ["1024x1024"],
     },
 };
 
@@ -33,11 +44,36 @@ export default async function scrapeGcpImageData(fmt: DataFormat) {
         fmt.imageModels = {};
     }
 
-    for (const [_modelId, model] of Object.entries(GCP_IMAGE_MODELS)) {
-        await addImageModelToFormat(fmt, "gcp", "us-central1", model, "hardcoded", "2026-03-20");
+    const pricing = await fetchLiteLLMPricing();
+    let modelsAdded = 0;
+
+    for (const [modelId, model] of Object.entries(pricing)) {
+        if (model.litellm_provider !== "vertex_ai-image-models") continue;
+        if (model.mode !== "image_generation") continue;
+        if (!model.output_cost_per_image) continue;
+
+        // Skip deprecated models
+        if (model.deprecation_date && new Date(model.deprecation_date) < new Date()) continue;
+
+        // Strip "vertex_ai/" prefix to get the bare model ID
+        const bareId = modelId.replace(/^vertex_ai\//, "");
+        const meta = MODEL_META[bareId];
+        if (!meta) continue;
+
+        const modelDef: ImageModelDefinition = {
+            name: meta.name,
+            provider: "Google",
+            supportsNegativePrompts: meta.supportsNegativePrompts,
+            supportedResolutions: meta.supportedResolutions,
+            pricing: meta.supportedResolutions.map((resolution) => ({
+                resolution,
+                pricePerImage: model.output_cost_per_image!,
+            })),
+        };
+
+        await addImageModelToFormat(fmt, "gcp", "us-central1", modelDef, "scraped");
+        modelsAdded++;
     }
 
-    console.log(
-        `Finished scraping GCP Vertex AI image generation data (${Object.keys(GCP_IMAGE_MODELS).length} models)`
-    );
+    console.log(`Finished scraping GCP Vertex AI image generation data (${modelsAdded} models)`);
 }
