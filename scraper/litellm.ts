@@ -13,6 +13,9 @@ export type LiteLLMModel = {
     cache_read_input_token_cost?: number;
     cache_creation_input_token_cost?: number;
     input_cost_per_token_cache_hit?: number;
+    input_cost_per_image?: number;
+    input_cost_per_pixel?: number;
+    output_cost_per_image?: number;
     litellm_provider?: string;
     max_input_tokens?: number;
     max_output_tokens?: number;
