@@ -10,7 +10,6 @@ import Column from "./Column";
 import forexData from "../forex.json";
 import Link from "./Link";
 import ColumnsHeader from "./ColumnsHeader";
-import ModelTypeTabs from "./ModelTypeTabs";
 
 export const DEFAULT_COLUMN_WIDTH = 200;
 
@@ -326,16 +325,75 @@ export default function Table({
         try {
             const table = document.querySelector("table");
             if (!table) return;
-            const rows = Array.from(table.querySelectorAll("tr"));
-            const csvLines = rows.map((row) => {
-                const cells = Array.from(row.querySelectorAll("th, td"));
-                return cells
-                    .map((cell) => {
-                        const text = (cell.textContent ?? "").trim().replace(/"/g, '""');
-                        return `"${text}"`;
-                    })
-                    .join(",");
-            });
+
+            const isElementVisible = (el: HTMLElement): boolean => {
+                const style = window.getComputedStyle(el);
+                if (
+                    style.display === "none" ||
+                    style.visibility === "hidden" ||
+                    style.opacity === "0"
+                ) {
+                    return false;
+                }
+                return el.getClientRects().length > 0;
+            };
+
+            const getVisibleCellText = (cell: HTMLElement): string => {
+                const overlaySelector = [
+                    "[hidden]",
+                    '[aria-hidden="true"]',
+                    '[role="tooltip"]',
+                    '[role="dialog"]',
+                    '[aria-modal="true"]',
+                    '[data-state="closed"]',
+                    '[data-headlessui-state="closed"]',
+                ].join(",");
+                const controlSelector =
+                    "button, input, select, textarea, svg, [contenteditable='true']";
+
+                const pieces: string[] = [];
+                const walker = document.createTreeWalker(cell, NodeFilter.SHOW_TEXT);
+                let node = walker.nextNode();
+
+                while (node) {
+                    const raw = node.textContent ?? "";
+                    const text = raw.replace(/\s+/g, " ").trim();
+                    if (text) {
+                        const parent = node.parentElement;
+                        if (
+                            parent &&
+                            !parent.closest(overlaySelector) &&
+                            !parent.closest(controlSelector) &&
+                            isElementVisible(parent)
+                        ) {
+                            pieces.push(text);
+                        }
+                    }
+                    node = walker.nextNode();
+                }
+
+                return pieces.join(" ").replace(/\s+/g, " ").trim();
+            };
+
+            const rows = Array.from(
+                table.querySelectorAll(
+                    ":scope > thead > tr, :scope > tbody > tr, :scope > tfoot > tr"
+                )
+            ).filter((row) => isElementVisible(row as HTMLElement));
+            const csvLines = rows
+                .map((row) => {
+                    const cells = Array.from(row.querySelectorAll(":scope > th, :scope > td"));
+                    return cells
+                        .map((cell) => {
+                            const text = getVisibleCellText(cell as HTMLElement).replace(
+                                /"/g,
+                                '""'
+                            );
+                            return `"${text}"`;
+                        })
+                        .join(",");
+                })
+                .filter((line) => line.replace(/["\s,]/g, "") !== "");
             navigator.clipboard.writeText(csvLines.join("\n")).then(() => {
                 setCsvCopied(true);
                 setTimeout(() => setCsvCopied(false), 2000);
