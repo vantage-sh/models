@@ -12,19 +12,38 @@ type ModelSpec = {
 
 const MODELS: ModelSpec[] = [
     { name: "DALL-E 2", litellmId: "dall-e-2", quality: null, supportsNegativePrompts: false },
-    { name: "DALL-E 3", litellmId: "dall-e-3", quality: "standard", supportsNegativePrompts: false },
+    {
+        name: "DALL-E 3",
+        litellmId: "dall-e-3",
+        quality: "standard",
+        supportsNegativePrompts: false,
+    },
     { name: "DALL-E 3 HD", litellmId: "dall-e-3", quality: "hd", supportsNegativePrompts: false },
-    { name: "GPT Image 1", litellmId: "gpt-image-1", quality: "low", supportsNegativePrompts: false },
-    { name: "GPT Image 1 Mini", litellmId: "gpt-image-1-mini", quality: "low", supportsNegativePrompts: false },
+    {
+        name: "GPT Image 1",
+        litellmId: "gpt-image-1",
+        quality: "low",
+        supportsNegativePrompts: false,
+    },
+    {
+        name: "GPT Image 1 Mini",
+        litellmId: "gpt-image-1-mini",
+        quality: "low",
+        supportsNegativePrompts: false,
+    },
 ];
 
 // Convert LiteLLM resolution string "1024-x-1024" → "1024x1024"
 function parseResolution(resStr: string): ImageResolution | null {
     const res = resStr.replace(/-x-/, "x");
     const valid: ImageResolution[] = [
-        "256x256", "512x512", "1024x1024",
-        "1024x1536", "1536x1024",
-        "1024x1792", "1792x1024",
+        "256x256",
+        "512x512",
+        "1024x1024",
+        "1024x1536",
+        "1536x1024",
+        "1024x1792",
+        "1792x1024",
         "2048x2048",
     ];
     return valid.includes(res as ImageResolution) ? (res as ImageResolution) : null;
