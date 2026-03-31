@@ -113,10 +113,23 @@ type GeminiTileImageTokenConfig = {
     smallImageMaxDimension: number;
 };
 
+// Mistral Pixtral-style: image scaled to fit maxImageSize, divided into
+// patchSize×patchSize patches, then spatially merged. Tokens include patch
+// tokens + IMG_BREAK row separators + IMG_END.
+// Formula: mergedH × (mergedW + 1) where mergedH/W = patches / spatialMergeSize
+// Source: https://mistralai.github.io/mistral-common/usage/images/
+type MistralTileImageTokenConfig = {
+    kind: "mistral-tile";
+    patchSize: number;
+    spatialMergeSize: number;
+    maxImageSize: number;
+};
+
 export type ImageTokenConfig =
     | TileBasedImageTokenConfig
     | AreaBasedImageTokenConfig
-    | GeminiTileImageTokenConfig;
+    | GeminiTileImageTokenConfig
+    | MistralTileImageTokenConfig;
 
 type ReasoningTier = "none" | "basic" | "extended";
 

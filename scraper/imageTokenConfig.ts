@@ -32,6 +32,15 @@ const IMAGE_TOKEN_CONFIGS: Record<string, ImageTokenConfig> = {
         smallImageMaxDimension: 384,
     },
 
+    // Mistral Pixtral — patch-based with spatial merging
+    // Image scaled to fit maxImageSize, divided into patchSize×patchSize patches,
+    // then spatially merged. Tokens = mergedH × (mergedW + 1).
+    // (Pixtral-Large uses mistral-common format, not HuggingFace processor format,
+    //  so parameters are hardcoded from the known Pixtral architecture.)
+    // Source: https://mistralai.github.io/mistral-common/usage/images/
+    // Covers: pixtral-12b, pixtral-large, pixtral-large-25-02
+    pixtral: { kind: "mistral-tile", patchSize: 16, spatialMergeSize: 2, maxImageSize: 1024 },
+
     // Anthropic — area-based: tokens ≈ (width × height) / 750
     // Long edge capped at 1568px; images exceeding ~1600 tokens are scaled down
     // Covers: claude-opus-4, claude-opus-4-1, claude-opus-4-5, claude-opus-4-6

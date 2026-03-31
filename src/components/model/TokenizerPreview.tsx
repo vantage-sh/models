@@ -248,6 +248,9 @@ function ImageRow({
 }) {
     const { scaledW, scaledH } = getScaledDimensions(image.width, image.height, config);
     const wasScaled = scaledW !== image.width || scaledH !== image.height;
+    const dims = wasScaled
+        ? `${image.width}×${image.height} → ${scaledW}×${scaledH}`
+        : `${image.width}×${image.height}`;
 
     let detail: string;
     if (config.kind === "tile") {
@@ -256,14 +259,22 @@ function ImageRow({
         detail = `${tilesX}×${tilesY} tiles`;
     } else if (config.kind === "area") {
         detail = `${(scaledW * scaledH).toLocaleString()} px² ÷ ${config.pixelsPerToken}`;
-    } else {
-        // gemini-tile
+    } else if (config.kind === "gemini-tile") {
         const isSmall =
             scaledW <= config.smallImageMaxDimension && scaledH <= config.smallImageMaxDimension;
         const tilesX = isSmall ? 1 : Math.ceil(scaledW / config.tileSizeLength);
         const tilesY = isSmall ? 1 : Math.ceil(scaledH / config.tileSizeLength);
         detail = `${tilesX}×${tilesY} tiles`;
+    } else {
+        const patchesW = Math.ceil(scaledW / config.patchSize);
+        const patchesH = Math.ceil(scaledH / config.patchSize);
+        const mergedW = Math.floor(patchesW / config.spatialMergeSize);
+        const mergedH = Math.floor(patchesH / config.spatialMergeSize);
+        detail = `${mergedH}×${mergedW} merged patches`;
     }
+    const subtitle = `${dims} · ${detail}`;
+
+    const tokenDisplay = `${image.tokens} tokens`;
 
     return (
         <div className="flex items-center gap-3 p-2 rounded-lg bg-gray-50 dark:bg-gray-900 border dark:border-gray-700">
@@ -274,14 +285,9 @@ function ImageRow({
             />
             <div className="flex-1 min-w-0">
                 <p className="text-sm font-medium truncate">{image.name}</p>
-                <p className="text-xs text-gray-500 dark:text-gray-400">
-                    {image.width}×{image.height}
-                    {wasScaled && ` → ${scaledW}×${scaledH}`}
-                    {" · "}
-                    {detail}
-                </p>
+                <p className="text-xs text-gray-500 dark:text-gray-400">{subtitle}</p>
             </div>
-            <span className="text-sm font-medium flex-shrink-0">{image.tokens} tokens</span>
+            <span className="text-sm font-medium flex-shrink-0">{tokenDisplay}</span>
             <button
                 onClick={() => onRemove(image.id)}
                 className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 flex-shrink-0 text-lg leading-none"
@@ -328,8 +334,15 @@ function getScaledDimensions(
             w = Math.floor(w * scale);
             h = Math.floor(h * scale);
         }
+    } else if (config.kind === "mistral-tile") {
+        // Scale to fit within maxImageSize
+        if (Math.max(w, h) > config.maxImageSize) {
+            const scale = config.maxImageSize / Math.max(w, h);
+            w = Math.floor(w * scale);
+            h = Math.floor(h * scale);
+        }
     }
-    // gemini-tile: no pre-scaling; image is tiled at native resolution
+    // gemini-tile: no pre-scaling
 
     return { scaledW: w, scaledH: h };
 }
@@ -342,14 +355,20 @@ function calculateImageTokens(width: number, height: number, config: ImageTokenC
         return config.baseTokens + config.tokensPerTile * tilesX * tilesY;
     } else if (config.kind === "area") {
         return Math.round((scaledW * scaledH) / config.pixelsPerToken);
-    } else {
-        // gemini-tile
+    } else if (config.kind === "gemini-tile") {
         if (scaledW <= config.smallImageMaxDimension && scaledH <= config.smallImageMaxDimension) {
             return config.tokensPerTile;
         }
         const tilesX = Math.ceil(scaledW / config.tileSizeLength);
         const tilesY = Math.ceil(scaledH / config.tileSizeLength);
         return config.tokensPerTile * tilesX * tilesY;
+    } else {
+        // mistral-tile: mergedH × (mergedW + 1)
+        const patchesW = Math.ceil(scaledW / config.patchSize);
+        const patchesH = Math.ceil(scaledH / config.patchSize);
+        const mergedW = Math.floor(patchesW / config.spatialMergeSize);
+        const mergedH = Math.floor(patchesH / config.spatialMergeSize);
+        return mergedH * (mergedW + 1);
     }
 }
 
@@ -358,13 +377,14 @@ function loadImageFile(file: File, config: ImageTokenConfig): Promise<UploadedIm
         const objectUrl = URL.createObjectURL(file);
         const img = new Image();
         img.onload = () => {
+            const tokens = calculateImageTokens(img.naturalWidth, img.naturalHeight, config);
             resolve({
                 id: `${Date.now()}-${Math.random()}`,
                 name: file.name,
                 objectUrl,
                 width: img.naturalWidth,
                 height: img.naturalHeight,
-                tokens: calculateImageTokens(img.naturalWidth, img.naturalHeight, config),
+                tokens,
             });
         };
         img.onerror = () => {
