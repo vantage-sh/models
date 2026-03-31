@@ -101,7 +101,22 @@ type AreaBasedImageTokenConfig = {
     maxTokens: number;
 };
 
-export type ImageTokenConfig = TileBasedImageTokenConfig | AreaBasedImageTokenConfig;
+// Google Gemini-style: fixed 768×768 tiling, 258 tokens per tile
+// Images with both dimensions ≤ smallImageMaxDimension count as a single tile.
+// No pre-scaling; the image is tiled at its native resolution.
+// Source: https://ai.google.dev/gemini-api/docs/tokens
+type GeminiTileImageTokenConfig = {
+    kind: "gemini-tile";
+    tokensPerTile: number;
+    tileSizeLength: number;
+    // If both dimensions are ≤ this, the image is counted as one tile
+    smallImageMaxDimension: number;
+};
+
+export type ImageTokenConfig =
+    | TileBasedImageTokenConfig
+    | AreaBasedImageTokenConfig
+    | GeminiTileImageTokenConfig;
 
 type ReasoningTier = "none" | "basic" | "extended";
 

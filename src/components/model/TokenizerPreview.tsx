@@ -254,8 +254,15 @@ function ImageRow({
         const tilesX = Math.ceil(scaledW / config.tileSizeLength);
         const tilesY = Math.ceil(scaledH / config.tileSizeLength);
         detail = `${tilesX}×${tilesY} tiles`;
-    } else {
+    } else if (config.kind === "area") {
         detail = `${(scaledW * scaledH).toLocaleString()} px² ÷ ${config.pixelsPerToken}`;
+    } else {
+        // gemini-tile
+        const isSmall =
+            scaledW <= config.smallImageMaxDimension && scaledH <= config.smallImageMaxDimension;
+        const tilesX = isSmall ? 1 : Math.ceil(scaledW / config.tileSizeLength);
+        const tilesY = isSmall ? 1 : Math.ceil(scaledH / config.tileSizeLength);
+        detail = `${tilesX}×${tilesY} tiles`;
     }
 
     return (
@@ -307,7 +314,7 @@ function getScaledDimensions(
             w = Math.floor(w * scale);
             h = Math.floor(h * scale);
         }
-    } else {
+    } else if (config.kind === "area") {
         // Scale down so the long edge does not exceed maxLongEdge
         if (Math.max(w, h) > config.maxLongEdge) {
             const scale = config.maxLongEdge / Math.max(w, h);
@@ -322,6 +329,7 @@ function getScaledDimensions(
             h = Math.floor(h * scale);
         }
     }
+    // gemini-tile: no pre-scaling; image is tiled at native resolution
 
     return { scaledW: w, scaledH: h };
 }
@@ -332,8 +340,16 @@ function calculateImageTokens(width: number, height: number, config: ImageTokenC
         const tilesX = Math.ceil(scaledW / config.tileSizeLength);
         const tilesY = Math.ceil(scaledH / config.tileSizeLength);
         return config.baseTokens + config.tokensPerTile * tilesX * tilesY;
-    } else {
+    } else if (config.kind === "area") {
         return Math.round((scaledW * scaledH) / config.pixelsPerToken);
+    } else {
+        // gemini-tile
+        if (scaledW <= config.smallImageMaxDimension && scaledH <= config.smallImageMaxDimension) {
+            return config.tokensPerTile;
+        }
+        const tilesX = Math.ceil(scaledW / config.tileSizeLength);
+        const tilesY = Math.ceil(scaledH / config.tileSizeLength);
+        return config.tokensPerTile * tilesX * tilesY;
     }
 }
 
