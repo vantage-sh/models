@@ -9,9 +9,15 @@ type PricingCalculatorProps = {
     model: Model;
     vendors: Record<string, VendorInfo>;
     isLlm: boolean;
+    tokenizerTokenCount?: number;
 };
 
-export default function PricingCalculator({ model, vendors, isLlm }: PricingCalculatorProps) {
+export default function PricingCalculator({
+    model,
+    vendors,
+    isLlm,
+    tokenizerTokenCount,
+}: PricingCalculatorProps) {
     const availableVendors = model.vendors
         .filter((v) => Object.keys(v.regionPricing).length > 0)
         .map((v) => ({
@@ -203,7 +209,18 @@ export default function PricingCalculator({ model, vendors, isLlm }: PricingCalc
 
             <div className="grid grid-cols-2 gap-4">
                 <div>
-                    <label className="block text-sm font-medium mb-1">Input Tokens</label>
+                    <div className="flex items-baseline justify-between mb-1">
+                        <label className="text-sm font-medium">Input Tokens</label>
+                        {tokenizerTokenCount !== undefined && (
+                            <button
+                                onClick={() => setInputTokens(tokenizerTokenCount)}
+                                className="text-xs text-blue-600 dark:text-blue-400 hover:underline"
+                                title={`Use ${tokenizerTokenCount.toLocaleString()} tokens from tokenizer`}
+                            >
+                                use {tokenizerTokenCount.toLocaleString()} from tokenizer
+                            </button>
+                        )}
+                    </div>
                     <input
                         type="number"
                         value={inputTokens}
@@ -213,7 +230,18 @@ export default function PricingCalculator({ model, vendors, isLlm }: PricingCalc
                     />
                 </div>
                 <div>
-                    <label className="block text-sm font-medium mb-1">Output Tokens</label>
+                    <div className="flex items-baseline justify-between mb-1">
+                        <label className="text-sm font-medium">Output Tokens</label>
+                        {tokenizerTokenCount !== undefined && (
+                            <button
+                                onClick={() => setOutputTokens(tokenizerTokenCount)}
+                                className="text-xs text-blue-600 dark:text-blue-400 hover:underline"
+                                title={`Use ${tokenizerTokenCount.toLocaleString()} tokens from tokenizer`}
+                            >
+                                use {tokenizerTokenCount.toLocaleString()} from tokenizer
+                            </button>
+                        )}
+                    </div>
                     <input
                         type="number"
                         value={outputTokens}

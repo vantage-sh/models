@@ -5,6 +5,7 @@ type TokenizerPreviewProps = {
     tokenizer?: Tokenizers;
     modelName: string;
     imageTokenConfig?: ImageTokenConfig;
+    onTokenCountChange?: (count: number) => void;
 };
 
 // Color palette for token visualization - alternating pastel colors
@@ -37,6 +38,7 @@ export default function TokenizerPreview({
     tokenizer,
     modelName,
     imageTokenConfig,
+    onTokenCountChange,
 }: TokenizerPreviewProps) {
     const [text, setText] = React.useState("");
     const [tokens, setTokens] = React.useState<TokenInfo[]>([]);
@@ -126,6 +128,10 @@ export default function TokenizerPreview({
     );
 
     const totalImageTokens = images.reduce((sum, img) => sum + img.tokens, 0);
+
+    React.useEffect(() => {
+        onTokenCountChange?.(tokens.length + totalImageTokens);
+    }, [tokens.length, totalImageTokens, onTokenCountChange]);
 
     return (
         <div className="mb-8 p-4 border dark:border-gray-700 rounded-lg bg-white dark:bg-gray-800">

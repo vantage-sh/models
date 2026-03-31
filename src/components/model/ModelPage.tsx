@@ -1,3 +1,4 @@
+import React from "react";
 import type { Model, VendorInfo } from "../../dataFormat";
 import Link from "../Link";
 import ModelHeader from "./ModelHeader";
@@ -56,6 +57,9 @@ function GemmaLegalNotice() {
 
 export default function ModelPage({ modelId, model, vendors, description, isLlm }: ModelPageProps) {
     const showGemmaNotice = isGemmaModel(modelId, model.company);
+    const [tokenizerTokenCount, setTokenizerTokenCount] = React.useState<number | undefined>(
+        undefined
+    );
 
     return (
         <div className="max-w-4xl mx-auto p-6">
@@ -72,9 +76,17 @@ export default function ModelPage({ modelId, model, vendors, description, isLlm 
                     tokenizer={model.tokenizer}
                     modelName={model.cleanName}
                     imageTokenConfig={model.imageTokenConfig}
+                    onTokenCountChange={setTokenizerTokenCount}
                 />
             )}
-            <PricingCalculator model={model} vendors={vendors} isLlm={isLlm} />
+            <PricingCalculator
+                model={model}
+                vendors={vendors}
+                isLlm={isLlm}
+                tokenizerTokenCount={
+                    model.tokenizer || model.imageTokenConfig ? tokenizerTokenCount : undefined
+                }
+            />
         </div>
     );
 }
