@@ -76,18 +76,32 @@ type Tokenizers = TiktokenTokenizer | TransformersTokenizer | SiteAPITokenizer;
 
 // Parameters for computing how many tokens an input image consumes.
 // Used by the tokenizer preview to show image token counts.
-export type ImageTokenConfig = {
-    // Tokens added for each tileSizeLength × tileSizeLength tile
+
+// OpenAI-style: image is divided into fixed-size tiles, each costing tokensPerTile
+type TileBasedImageTokenConfig = {
+    kind: "tile";
     tokensPerTile: number;
-    // Flat tokens always added regardless of image size
     baseTokens: number;
     // Images are scaled down so neither dimension exceeds this
     maxImageDimension: number;
     // Images are scaled down so the shorter side does not exceed this
     imageMinSizeLength: number;
-    // Tile size in pixels (image is divided into tiles of this size)
     tileSizeLength: number;
 };
+
+// Anthropic-style: tokens ≈ (width × height) / pixelsPerToken
+// Source: https://platform.claude.com/docs/en/build-with-claude/vision
+type AreaBasedImageTokenConfig = {
+    kind: "area";
+    // Divides pixel area to get token count
+    pixelsPerToken: number;
+    // Images are scaled down so the long edge does not exceed this
+    maxLongEdge: number;
+    // Images are scaled down so token count does not exceed this
+    maxTokens: number;
+};
+
+export type ImageTokenConfig = TileBasedImageTokenConfig | AreaBasedImageTokenConfig;
 
 type ReasoningTier = "none" | "basic" | "extended";
 

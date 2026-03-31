@@ -192,7 +192,10 @@ export default function TokenizerPreview({
                                 : "border-gray-300 dark:border-gray-600 hover:border-gray-400 dark:hover:border-gray-500"
                         }`}
                         onClick={() => fileInputRef.current?.click()}
-                        onDragOver={(e) => { e.preventDefault(); setDragging(true); }}
+                        onDragOver={(e) => {
+                            e.preventDefault();
+                            setDragging(true);
+                        }}
                         onDragLeave={() => setDragging(false)}
                         onDrop={handleDrop}
                     >
@@ -244,9 +247,16 @@ function ImageRow({
     onRemove: (id: string) => void;
 }) {
     const { scaledW, scaledH } = getScaledDimensions(image.width, image.height, config);
-    const tilesX = Math.ceil(scaledW / config.tileSizeLength);
-    const tilesY = Math.ceil(scaledH / config.tileSizeLength);
     const wasScaled = scaledW !== image.width || scaledH !== image.height;
+
+    let detail: string;
+    if (config.kind === "tile") {
+        const tilesX = Math.ceil(scaledW / config.tileSizeLength);
+        const tilesY = Math.ceil(scaledH / config.tileSizeLength);
+        detail = `${tilesX}×${tilesY} tiles`;
+    } else {
+        detail = `${(scaledW * scaledH).toLocaleString()} px² ÷ ${config.pixelsPerToken}`;
+    }
 
     return (
         <div className="flex items-center gap-3 p-2 rounded-lg bg-gray-50 dark:bg-gray-900 border dark:border-gray-700">
@@ -261,7 +271,7 @@ function ImageRow({
                     {image.width}×{image.height}
                     {wasScaled && ` → ${scaledW}×${scaledH}`}
                     {" · "}
-                    {tilesX}×{tilesY} tiles
+                    {detail}
                 </p>
             </div>
             <span className="text-sm font-medium flex-shrink-0">{image.tokens} tokens</span>
@@ -284,19 +294,33 @@ function getScaledDimensions(
     let w = width;
     let h = height;
 
-    // Scale down to fit within maxImageDimension × maxImageDimension
-    if (w > config.maxImageDimension || h > config.maxImageDimension) {
-        const scale = config.maxImageDimension / Math.max(w, h);
-        w = Math.floor(w * scale);
-        h = Math.floor(h * scale);
-    }
-
-    // Scale down so the shorter side does not exceed imageMinSizeLength
-    const shortSide = Math.min(w, h);
-    if (shortSide > config.imageMinSizeLength) {
-        const scale = config.imageMinSizeLength / shortSide;
-        w = Math.floor(w * scale);
-        h = Math.floor(h * scale);
+    if (config.kind === "tile") {
+        // Scale down to fit within maxImageDimension × maxImageDimension
+        if (w > config.maxImageDimension || h > config.maxImageDimension) {
+            const scale = config.maxImageDimension / Math.max(w, h);
+            w = Math.floor(w * scale);
+            h = Math.floor(h * scale);
+        }
+        // Scale down so the shorter side does not exceed imageMinSizeLength
+        if (Math.min(w, h) > config.imageMinSizeLength) {
+            const scale = config.imageMinSizeLength / Math.min(w, h);
+            w = Math.floor(w * scale);
+            h = Math.floor(h * scale);
+        }
+    } else {
+        // Scale down so the long edge does not exceed maxLongEdge
+        if (Math.max(w, h) > config.maxLongEdge) {
+            const scale = config.maxLongEdge / Math.max(w, h);
+            w = Math.floor(w * scale);
+            h = Math.floor(h * scale);
+        }
+        // Scale down so token count does not exceed maxTokens
+        const maxPixels = config.maxTokens * config.pixelsPerToken;
+        if (w * h > maxPixels) {
+            const scale = Math.sqrt(maxPixels / (w * h));
+            w = Math.floor(w * scale);
+            h = Math.floor(h * scale);
+        }
     }
 
     return { scaledW: w, scaledH: h };
@@ -304,9 +328,13 @@ function getScaledDimensions(
 
 function calculateImageTokens(width: number, height: number, config: ImageTokenConfig): number {
     const { scaledW, scaledH } = getScaledDimensions(width, height, config);
-    const tilesX = Math.ceil(scaledW / config.tileSizeLength);
-    const tilesY = Math.ceil(scaledH / config.tileSizeLength);
-    return config.baseTokens + config.tokensPerTile * tilesX * tilesY;
+    if (config.kind === "tile") {
+        const tilesX = Math.ceil(scaledW / config.tileSizeLength);
+        const tilesY = Math.ceil(scaledH / config.tileSizeLength);
+        return config.baseTokens + config.tokensPerTile * tilesX * tilesY;
+    } else {
+        return Math.round((scaledW * scaledH) / config.pixelsPerToken);
+    }
 }
 
 function loadImageFile(file: File, config: ImageTokenConfig): Promise<UploadedImage> {
