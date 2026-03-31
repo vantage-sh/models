@@ -74,6 +74,21 @@ type SiteAPITokenizer = {
 
 type Tokenizers = TiktokenTokenizer | TransformersTokenizer | SiteAPITokenizer;
 
+// Parameters for computing how many tokens an input image consumes.
+// Used by the tokenizer preview to show image token counts.
+export type ImageTokenConfig = {
+    // Tokens added for each tileSizeLength × tileSizeLength tile
+    tokensPerTile: number;
+    // Flat tokens always added regardless of image size
+    baseTokens: number;
+    // Images are scaled down so neither dimension exceeds this
+    maxImageDimension: number;
+    // Images are scaled down so the shorter side does not exceed this
+    imageMinSizeLength: number;
+    // Tile size in pixels (image is divided into tiles of this size)
+    tileSizeLength: number;
+};
+
 type ReasoningTier = "none" | "basic" | "extended";
 
 type Model = {
@@ -89,6 +104,7 @@ type Model = {
     trainingCutoff?: string; // Date string like "2024-04"
     releaseDate?: string; // Date string like "2024-03-14"
     tokenizer?: Tokenizers;
+    imageTokenConfig?: ImageTokenConfig;
     humanitysLastExamPercentage?: number;
     sweBenchResolvedPercentage?: number;
     skatebenchScore?: number;

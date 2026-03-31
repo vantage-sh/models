@@ -9,6 +9,7 @@ import {
     getReleaseDate,
     type ReasoningTier,
 } from "./constants";
+import { getImageTokenConfig } from "./imageTokenConfig";
 import { getPerformanceMetrics } from "./scrapers/artificialanalysis";
 import { getOpenRouterMetadata } from "./openrouter";
 
@@ -106,6 +107,7 @@ export async function addModelToFormat(
             releaseDate:
                 model.releaseDate ?? getReleaseDate(slugifiedModel) ?? openRouterMeta.releaseDate,
             tokenizer: getTokenizerForModel(slugifiedModel, model.provider),
+            imageTokenConfig: getImageTokenConfig(slugifiedModel),
             ...(await addBenchmarkDataForModel(slugifiedModel)),
         };
         fmt.models[slugifiedModel] = modelEntry;

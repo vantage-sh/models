@@ -67,8 +67,12 @@ export default function ModelPage({ modelId, model, vendors, description, isLlm 
             <ModelHeader model={model} description={description} />
             <ModelMetadata model={model} />
             {showGemmaNotice && <GemmaLegalNotice />}
-            {model.tokenizer && (
-                <TokenizerPreview tokenizer={model.tokenizer} modelName={model.cleanName} />
+            {(model.tokenizer || model.imageTokenConfig) && (
+                <TokenizerPreview
+                    tokenizer={model.tokenizer}
+                    modelName={model.cleanName}
+                    imageTokenConfig={model.imageTokenConfig}
+                />
             )}
             <PricingCalculator model={model} vendors={vendors} isLlm={isLlm} />
         </div>
