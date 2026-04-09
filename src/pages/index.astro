@@ -5,8 +5,48 @@ import data from "../data";
 import MainLayout from '../layouts/MainLayout.astro';
 
 const llmModels = getModelIdsAndNames(data);
+
+const titleExtra = "LLM pricing, benchmarks, and specifications";
+const description =
+    "Compare language models from major cloud vendors with live pricing, token costs, and benchmark scores in one place.";
+
+const basePath = import.meta.env.PUBLIC_BASE_PATH ?? "";
+const pageHref = Astro.site
+    ? new URL(
+          Astro.url.pathname.length > 1 && Astro.url.pathname.endsWith("/")
+              ? Astro.url.pathname.slice(0, -1)
+              : Astro.url.pathname,
+          Astro.site,
+      ).href
+    : "";
+const siteRootHref = Astro.site ? new URL(basePath || "/", Astro.site).href.replace(/\/$/, "") : "";
+
+const jsonLd = Astro.site
+    ? {
+          "@context": "https://schema.org",
+          "@graph": [
+              {
+                  "@type": "WebSite",
+                  "@id": `${siteRootHref}#website`,
+                  name: "vantage.sh/models",
+                  url: siteRootHref,
+                  description:
+                      "Open-source comparison of AI model pricing, benchmarks, and specifications from major cloud vendors.",
+              },
+              {
+                  "@type": "WebPage",
+                  "@id": `${pageHref}#webpage`,
+                  name: titleExtra,
+                  description,
+                  url: pageHref,
+                  isPartOf: { "@id": `${siteRootHref}#website` },
+              },
+          ],
+      }
+    : null;
 ---
 
-<MainLayout>
+<MainLayout titleExtra={titleExtra} description={description} jsonLd={jsonLd}>
+    <h1 class="sr-only">{titleExtra}</h1>
     <Table models={llmModels} vendors={data.vendors} isLlm={true} scrapedAt={data.scrapedAt} client:load />
 </MainLayout>

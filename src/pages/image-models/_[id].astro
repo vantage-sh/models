@@ -19,9 +19,57 @@ const vendors = oxfordify(
 );
 
 const description = `${modelName} is an image generation model created by ${model.company}. It is served by ${vendors}.`;
+
+const titleExtra = `${modelName} Pricing and Specifications`;
+
+const basePath = import.meta.env.PUBLIC_BASE_PATH ?? "";
+const siteRootHref = Astro.site ? new URL(basePath || "/", Astro.site).href.replace(/\/$/, "") : "";
+const imageIndexPath = `${basePath}/image-gen`.replace(/\/{2,}/g, "/") || "/image-gen";
+const imageIndexHref = Astro.site ? new URL(imageIndexPath, Astro.site).href : "";
+const pageHref = Astro.site
+    ? new URL(
+          Astro.url.pathname.length > 1 && Astro.url.pathname.endsWith("/")
+              ? Astro.url.pathname.slice(0, -1)
+              : Astro.url.pathname,
+          Astro.site,
+      ).href
+    : "";
+
+const jsonLd = Astro.site
+    ? {
+          "@context": "https://schema.org",
+          "@graph": [
+              {
+                  "@type": "WebPage",
+                  "@id": `${pageHref}#webpage`,
+                  name: titleExtra,
+                  description,
+                  url: pageHref,
+                  isPartOf: { "@id": `${siteRootHref}#website` },
+              },
+              {
+                  "@type": "BreadcrumbList",
+                  itemListElement: [
+                      {
+                          "@type": "ListItem",
+                          position: 1,
+                          name: "Image models",
+                          item: imageIndexHref,
+                      },
+                      {
+                          "@type": "ListItem",
+                          position: 2,
+                          name: modelName,
+                          item: pageHref,
+                      },
+                  ],
+              },
+          ],
+      }
+    : null;
 ---
 
-<MainLayout titleExtra={`${modelName} Pricing and Specifications`} description={description}>
+<MainLayout titleExtra={titleExtra} description={description} jsonLd={jsonLd}>
     <ImageModelPage
         model={model}
         vendors={data.vendors}
