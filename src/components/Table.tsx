@@ -93,11 +93,6 @@ function Toolbar({
                 </button>
             </div>
             <div className="flex items-center gap-3">
-                {formattedDate && (
-                    <span className="text-xs text-gray-400 dark:text-gray-500 hidden sm:block">
-                        Refreshed {formattedDate}
-                    </span>
-                )}
                 {/* Copy table as CSV */}
                 <button
                     onClick={onCopyCSV}
