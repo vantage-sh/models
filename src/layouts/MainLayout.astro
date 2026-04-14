@@ -1,6 +1,7 @@
 ---
 import { ClientRouter } from "astro:transitions";
 import Header from "../components/Header.astro";
+import Footer from "../components/Footer.astro";
 import "../styles/global.css";
 
 import GTMHead from "../components/gtm/GTMHead.astro";
@@ -64,9 +65,10 @@ const jsonLdHtml = jsonLd
 
     <body>
         <Header />
-        <main class="h-[calc(100vh-4rem)] overflow-auto">
+        <main class="h-[calc(100vh-7rem)] overflow-auto">
             <slot />
         </main>
+        <Footer />
         <GTMBody />
     </body>
 </html>

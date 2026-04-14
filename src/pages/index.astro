@@ -48,5 +48,5 @@ const jsonLd = Astro.site
 
 <MainLayout titleExtra={titleExtra} description={description} jsonLd={jsonLd}>
     <h1 class="sr-only">{titleExtra}</h1>
-    <Table models={llmModels} vendors={data.vendors} isLlm={true} scrapedAt={data.scrapedAt} client:load />
+    <Table models={llmModels} vendors={data.vendors} isLlm={true} client:load />
 </MainLayout>
