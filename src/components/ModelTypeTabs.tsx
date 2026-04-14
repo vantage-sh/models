@@ -3,7 +3,7 @@ import React from "react";
 
 const tabs: { path: string; label: string }[] = [
     { path: "/", label: "LLM" },
-    { path: "/image-gen/", label: "Image Gen" },
+    { path: "/image-gen", label: "Image Gen" },
 ];
 
 function usePath() {

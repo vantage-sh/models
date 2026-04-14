@@ -353,6 +353,15 @@ export function useMultiColumnSync(
             hiddenPerQuery.current[idx] = new Set();
         }
     }
+    // When queries are removed, clear the shared hidden map and all per-query hidden sets
+    // so stale filter-hidden rows don't persist. The filtersKey effect will recompute
+    // visibility for all remaining queries on the next render.
+    if (hiddenPerQuery.current.length > queries.length) {
+        hidden.clear();
+        for (let idx = 0; idx < hiddenPerQuery.current.length; idx++) {
+            hiddenPerQuery.current[idx]?.clear();
+        }
+    }
     // Only trim content/hidden (per-query data). Leave listener/factory arrays untrimmed
     // so that unmounting ColumnsHeader components can still safely unsubscribe.
     contentPerQuery.current.length = queries.length;

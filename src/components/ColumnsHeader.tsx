@@ -141,6 +141,7 @@ export default function ColumnsHeader({
     firstId,
 }: ColumnsHeaderProps) {
     const [queries, setQueries] = useStateItem("queries", isLlm);
+    const [currentSorting, setCurrentSorting] = useStateItem("currentSorting", isLlm);
 
     // Only re-renders when the dominant value type per column changes.
     const columnTypesKey = useColumnTypes();
@@ -156,12 +157,20 @@ export default function ColumnsHeader({
     }, [query, columnSpecificDataTypes, filters, queries, queryIdx]);
 
     const deleteQuery = React.useCallback(() => {
+        if (currentSorting) {
+            const [sortIdx] = currentSorting;
+            if (sortIdx === queryIdx) {
+                setCurrentSorting(null);
+            } else if (sortIdx > queryIdx) {
+                setCurrentSorting([sortIdx - 1, currentSorting[1], currentSorting[2]]);
+            }
+        }
         setQueries((prev) => {
             const newQueries = [...prev];
             newQueries.splice(queryIdx, 1);
             return newQueries;
         });
-    }, [setQueries, queryIdx]);
+    }, [setQueries, queryIdx, currentSorting, setCurrentSorting]);
 
     const setSorting = React.useCallback(
         (columnName: string, cb: (value: boolean | null) => boolean | null) => {

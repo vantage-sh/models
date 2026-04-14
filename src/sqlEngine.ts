@@ -88,6 +88,23 @@ export function getImageModelIdsAndNames(data: DataFormat): { id: string; name: 
         .sort((a, b) => a.name.localeCompare(b.name));
 }
 
+/** Returns the subset of vendors that have at least one image generation model. */
+export function getImageVendors(data: DataFormat): Record<string, typeof data.vendors[string]> {
+    const vendorRefs = new Set<string>();
+    for (const model of Object.values(data.imageModels || {})) {
+        for (const v of model.vendors) {
+            vendorRefs.add(v.vendorRef);
+        }
+    }
+    const filtered: Record<string, typeof data.vendors[string]> = {};
+    for (const ref of vendorRefs) {
+        if (data.vendors[ref]) {
+            filtered[ref] = data.vendors[ref];
+        }
+    }
+    return filtered;
+}
+
 let loadedDataPromise: Promise<Uint8Array<ArrayBuffer>> | null = null;
 let dbHashPromise: Promise<string> | null = null;
 

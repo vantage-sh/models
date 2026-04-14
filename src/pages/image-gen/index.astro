@@ -1,10 +1,11 @@
 ---
 import Table from '../../components/Table';
-import { getImageModelIdsAndNames } from '../../sqlEngine';
+import { getImageModelIdsAndNames, getImageVendors } from '../../sqlEngine';
 import data from "../../data";
 import MainLayout from '../../layouts/MainLayout.astro';
 
 const imageModels = getImageModelIdsAndNames(data);
+const imageVendors = getImageVendors(data);
 
 const titleExtra = "Image generation pricing and specifications";
 const description =
@@ -48,5 +49,5 @@ const jsonLd = Astro.site
 
 <MainLayout titleExtra={titleExtra} description={description} jsonLd={jsonLd}>
     <h1 class="sr-only">{titleExtra}</h1>
-    <Table models={imageModels} vendors={data.vendors} isLlm={false} client:only="react" />
+    <Table models={imageModels} vendors={imageVendors} isLlm={false} client:only="react" />
 </MainLayout>
