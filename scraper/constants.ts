@@ -67,6 +67,7 @@ const MODEL_REASONING_PREFIXES = {
     "gemini-2-5": true,
     "gemini-2-0": true,
     "gemini-1-5": true,
+    "google-gemma-4": true,
     "gemma-3": true,
     // IBM
     "granite-3": true,
