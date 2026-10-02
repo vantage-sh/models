@@ -44,6 +44,7 @@ const PROVIDERS = {
     "Moonshot AI": "CN",
     "Z AI": "CN",
     Writer: "US",
+    xAI: "US",
 } as const;
 
 function providerToCountryCode(provider: string): string {

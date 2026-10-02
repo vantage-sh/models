@@ -24,6 +24,7 @@ export const PROVIDERS: Record<string, string> = {
     IBM: "US",
     Alibaba: "CN",
     Microsoft: "US",
+    xAI: "US",
 };
 
 export function slugify(name: string, provider: string): string {
