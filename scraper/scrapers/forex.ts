@@ -23,7 +23,7 @@ export default async function scrapeForexData() {
     const currencyInfo: Record<string, PartialCurrencyInfo> = {};
     for (const [code, info] of Object.entries(data)) {
         currencyInfo[code] = {
-            rate: info.rate,
+            rate: Number(info.rate),
             name: info.name,
         };
     }

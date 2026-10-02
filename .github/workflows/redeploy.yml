@@ -35,3 +35,13 @@ jobs:
                   SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
                   SLACK_WEBHOOK_TYPE: INCOMING_WEBHOOK
                   SERVICE: models
+
+    # Prevent GitHub from disabling this scheduled workflow after 60 days of repo inactivity.
+    # https://docs.github.com/en/actions/managing-workflow-runs/disabling-and-enabling-a-workflow
+    workflow-keepalive:
+        if: github.event_name == 'schedule'
+        runs-on: ubuntu-latest
+        permissions:
+            actions: write
+        steps:
+            - uses: liskin/gh-workflow-keepalive@v1
