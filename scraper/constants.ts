@@ -72,9 +72,11 @@ const MODEL_REASONING_PREFIXES = {
     // IBM
     "granite-3": true,
     granite: true,
-    // Kimi AI
+    // Kimi AI / Moonshot AI
     "kimi-k2-thinking": true,
     "kimi-k2-5": false,
+    "kimi-k3": true,
+    kimi: true,
     qwen3: true,
     // Nvidia
     "nvidia-nemotron-nano": true,
@@ -88,6 +90,9 @@ const MODEL_REASONING_PREFIXES = {
     phi: false,
     // Writer
     "writer-palmyra": true,
+    // xAI
+    "grok-4": true,
+    grok: true,
 } as const;
 
 export function isReasoningModel(modelId: string): boolean {
@@ -334,6 +339,11 @@ export function isSelfHostableModel(modelId: string, provider: string): boolean 
 
     if (provider === "Writer") {
         // Writer Palmyra model is not self-hostable
+        return false;
+    }
+
+    if (provider === "xAI") {
+        // xAI Grok models are not self-hostable
         return false;
     }
 
