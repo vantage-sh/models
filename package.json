@@ -2,6 +2,9 @@
   "name": "models",
   "type": "module",
   "private": true,
+  "engines": {
+    "node": ">=20 <25"
+  },
   "scripts": {
     "dev": "astro dev",
     "build": "astro build",
